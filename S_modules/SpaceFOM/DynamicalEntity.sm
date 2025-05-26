@@ -2,8 +2,9 @@
  * General TrickHLA Space Reference Federation Object Model (SpaceFOM)
  * Simulation Definition Object for the standard physical entity.
  *---------------------------------------------------------------------------*
- * This is a Simulation Definition (S_define) module that defines the
- * standard SpaceFOM PhysicalEntity base simulation object instance.
+ * PURPOSE:
+ *    (This is a Simulation Definition 'S_define' module that defines the
+ *     standard SpaceFOM PhysicalEntity base simulation object instance.)
  ****************************************************************************/
 /*****************************************************************************
  *       Author: Edwin Z. Crues
@@ -20,31 +21,31 @@
  *        Date: 
  * Description: 
  ****************************************************************************/
- 
+
+// SpaceFOM include files.
+##include "SpaceFOM/DynamicalEntity.hh"
+##include "SpaceFOM/DynamicalEntityConditionalBase.hh"
+##include "SpaceFOM/DynamicalEntityData.hh"
+##include "SpaceFOM/DynamicalEntityDeleted.hh"
+##include "SpaceFOM/DynamicalEntityLagComp.hh"
+##include "SpaceFOM/DynamicalEntityOwnershipHandler.hh"
+##include "SpaceFOM/PhysicalEntityData.hh"
+
+// Include TrickHLA Packing object base simulation definition module.
+#include "THLAPackingBase.sm"
 
 //==========================================================================
 // SIM_OBJECT: SpaceFOMDynamicalEntitySimObject - A SpaceFOM DynamicalEntity
 // instance simulation object definition.
 //==========================================================================
-
-// SpaceFOM include files.
-##include "SpaceFOM/DynamicalEntity.hh"
-##include "SpaceFOM/DynamicalEntityConditionalBase.hh"
-##include "SpaceFOM/DynamicalEntityLagComp.hh"
-##include "SpaceFOM/DynamicalEntityOwnershipHandler.hh"
-##include "SpaceFOM/DynamicalEntityDeleted.hh"
-
-// Include TrickHLA Packing object base simulation definition module.
-#include "THLAPackingBase.sm"
-
 class SpaceFOMDynamicalEntitySimObject : public TrickHLAPackingBaseSimObject {
 
-  public:
-
+  private:
    // DynamicalEntity data.
    SpaceFOM::PhysicalEntityData  & pe_data;
    SpaceFOM::DynamicalEntityData & de_data;
 
+  public:
    /* HLA associated reference frames packing object. */
    SpaceFOM::DynamicalEntity entity_packing;
 
@@ -77,12 +78,10 @@ class SpaceFOMDynamicalEntitySimObject : public TrickHLAPackingBaseSimObject {
       conditional_base_ptr = &conditional;
       ownership_base_ptr   = &ownership_handler;
       deleted_base_ptr     = &deleted_callback;
-
    }
 
   private:
    // This object is not copyable
    SpaceFOMDynamicalEntitySimObject( SpaceFOMDynamicalEntitySimObject const & );
    SpaceFOMDynamicalEntitySimObject & operator=( SpaceFOMDynamicalEntitySimObject const & );
-
 };

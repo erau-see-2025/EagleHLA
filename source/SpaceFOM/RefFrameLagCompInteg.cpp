@@ -73,7 +73,6 @@ RefFrameLagCompInteg::~RefFrameLagCompInteg() // RETURN: -- None.
  */
 void RefFrameLagCompInteg::initialize()
 {
-
    if ( this->integ_dt < this->integ_tol ) {
       ostringstream errmsg;
 
@@ -110,32 +109,35 @@ void RefFrameLagCompInteg::send_lag_compensation()
              << " scenario-time:" << get_scenario_time() << '\n'
              << "     lookahead:" << this->compensate_dt << '\n'
              << " adjusted-time:" << end_t << '\n';
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
    }
 
    // Copy the current RefFrame state over to the lag compensated state.
-   this->ref_frame.pack_from_working_data();
-   this->load_lag_comp_data();
-   this->Q_dot.derivative_first( this->lag_comp_data.att,
-                                 this->lag_comp_data.ang_vel );
+   ref_frame.pack_from_working_data();
+   load_lag_comp_data();
+   Q_dot.derivative_first( lag_comp_data.att, lag_comp_data.ang_vel );
 
    // Print out debug information if desired.
    if ( debug ) {
-      cout << "Send data before compensation: \n";
-      this->print_lag_comp_data();
+      ostringstream msg;
+      msg << "Send data before compensation: \n";
+      print_lag_comp_data( msg );
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 
    // Compensate the data
-   this->compensate( begin_t, end_t );
+   compensate( begin_t, end_t );
 
    // Print out debug information if desired.
    if ( debug ) {
-      cout << "Send data after compensation: \n";
-      this->print_lag_comp_data();
+      ostringstream msg;
+      msg << "Send data after compensation: \n";
+      print_lag_comp_data( msg );
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 
    // Copy the compensated state to the packing data.
-   this->unload_lag_comp_data();
+   unload_lag_comp_data();
 
    // Return to calling routine.
    return;
@@ -159,39 +161,42 @@ void RefFrameLagCompInteg::receive_lag_compensation()
              << "  scenario-time:" << end_t << '\n'
              << "      data-time:" << data_t << '\n'
              << " comp-time-step:" << this->compensate_dt << '\n';
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
    }
 
    // Because of ownership transfers and attributes being sent at different
    // rates we need to check to see if we received attribute data.
-   if ( this->state_attr->is_received() ) {
+   if ( state_attr->is_received() ) {
 
       // Copy the current RefFrame state over to the lag compensated state.
-      this->load_lag_comp_data();
-      this->Q_dot.derivative_first( this->lag_comp_data.att,
-                                    this->lag_comp_data.ang_vel );
+      load_lag_comp_data();
+      Q_dot.derivative_first( lag_comp_data.att, lag_comp_data.ang_vel );
 
       // Print out debug information if desired.
       if ( debug ) {
-         cout << "Receive data before compensation: \n";
-         this->print_lag_comp_data();
+         ostringstream msg;
+         msg << "Receive data before compensation: \n";
+         print_lag_comp_data( msg );
+         message_publish( MSG_NORMAL, msg.str().c_str() );
       }
 
       // Compensate the data
-      this->compensate( data_t, end_t );
+      compensate( data_t, end_t );
 
       // Print out debug information if desired.
       if ( debug ) {
-         cout << "Receive data after compensation: \n";
-         this->print_lag_comp_data();
+         ostringstream msg;
+         msg << "Receive data after compensation: \n";
+         print_lag_comp_data( msg );
+         message_publish( MSG_NORMAL, msg.str().c_str() );
       }
    }
 
    // Copy the compensated state to the packing data.
-   this->unload_lag_comp_data();
+   unload_lag_comp_data();
 
    // Move the unpacked data into the working data.
-   this->ref_frame.unpack_into_working_data();
+   ref_frame.unpack_into_working_data();
 
    // Return to calling routine.
    return;

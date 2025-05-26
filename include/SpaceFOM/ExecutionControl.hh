@@ -105,7 +105,7 @@ class ExecutionControl : public TrickHLA::ExecutionControlBase
    ExecutionControl();
    /*! @brief Initialization constructor for the ExecutionControl class.
     *  @param exec_config The associated ExecutionControl class instance. */
-   explicit ExecutionControl( ExecutionConfiguration &exec_config );
+   explicit ExecutionControl( SpaceFOM::ExecutionConfiguration &exec_config );
    /*! @brief Destructor for the SpaceFOM ExecutionControl class. */
    virtual ~ExecutionControl();
 
@@ -178,7 +178,7 @@ class ExecutionControl : public TrickHLA::ExecutionControlBase
     * @param theUserSuppliedTag Users tag.
     * @param theTime            HLA time for the interaction.
     * @param received_as_TSO    True if interaction was received by RTI as TSO. */
-   virtual void receive_interaction(
+   virtual bool receive_interaction(
       RTI1516_NAMESPACE::InteractionClassHandle const  &theInteraction,
       RTI1516_NAMESPACE::ParameterHandleValueMap const &theParameterValues,
       RTI1516_USERDATA const                           &theUserSuppliedTag,
@@ -190,6 +190,13 @@ class ExecutionControl : public TrickHLA::ExecutionControlBase
    /*! @brief Process a new mode interaction.
     *  @return True if new mode interaction is successfully processed. */
    virtual bool process_mode_interaction();
+   /*! @brief Get a comma separated list of interaction FOM names used.
+    *  @return Comma separated list of interaction FOM names used. */
+   virtual std::string get_interaction_FOM_names()
+   {
+      // Only have one interaction used by this execution control.
+      return ( mtr_interaction != NULL ) ? mtr_interaction->get_FOM_name() : "";
+   }
    /*! @brief Sets the next ExecutionControl run mode.
     *  @param exec_control Next ExecutionControl run mode. */
    virtual void set_next_execution_control_mode( TrickHLA::ExecutionControlEnum exec_control );
@@ -330,6 +337,9 @@ class ExecutionControl : public TrickHLA::ExecutionControlBase
    /*! @brief Assignment operator for ExecutionControl class.
     *  @details This assignment operator is private to prevent inadvertent copies. */
    ExecutionControl &operator=( ExecutionControl const &rhs );
+
+   /*! Print clock summary debug info. */
+   void print_clock_summary( std::string const &msg );
 };
 
 } // namespace SpaceFOM

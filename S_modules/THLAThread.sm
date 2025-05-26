@@ -1,8 +1,9 @@
 /*****************************************************************************
  * General TrickHLA Simulation Thread Class Definition Object
  *---------------------------------------------------------------------------*
- * This is a Simulation Definition (S_define) module that defines a general
- * HLA interface using TrickHLA for Trick based simulations.
+ * PURPOSE:
+ *    (This is a Simulation Definition 'S_define' module that defines a
+ *     general HLA interface using TrickHLA for Trick based simulations.)
  ****************************************************************************/
 /*****************************************************************************
  *       Author: Dan E. Dexter
@@ -37,7 +38,6 @@
 //============================================================================
 // SIM_OBJECT: THLAThreadSimObject - TrickHLA Multi-Thread interface routines.
 //============================================================================
-
 class THLAThreadSimObject : public Trick::SimObject {
 
  public:
@@ -81,8 +81,10 @@ class THLAThreadSimObject : public Trick::SimObject {
       C_THREAD_ID P_LAST (data_cycle_time, data_send_time, "logging") federate.wait_to_send_data();
    }
 
- protected:
+ private:
    TrickHLA::Federate & federate;
+ 
+ protected:
    double               data_cycle_time;
    double               data_send_time;
    unsigned int         thread_id;

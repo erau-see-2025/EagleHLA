@@ -22,6 +22,7 @@ NASA, Johnson Space Center\n
 @trick_link_dependency{MutexProtection.cpp}
 @trick_link_dependency{Parameter.cpp}
 @trick_link_dependency{ParameterItem.cpp}
+@trick_link_dependency{Types.cpp}
 
 @revs_title
 @revs_begin
@@ -52,6 +53,7 @@ NASA, Johnson Space Center\n
 #include "TrickHLA/MutexProtection.hh"
 #include "TrickHLA/Parameter.hh"
 #include "TrickHLA/ParameterItem.hh"
+#include "TrickHLA/Types.hh"
 
 // C++11 deprecated dynamic exception specifications for a function so we need
 // to silence the warnings coming from the IEEE 1516 declared functions.
@@ -62,19 +64,9 @@ NASA, Johnson Space Center\n
 #include RTI1516_HEADER
 #pragma GCC diagnostic pop
 
+using namespace RTI1516_NAMESPACE;
 using namespace std;
 using namespace TrickHLA;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-// C based model includes.
-
-extern ATTRIBUTES attrParameterItem[];
-
-#ifdef __cplusplus
-}
-#endif
 
 /*!
  * @job_class{initialization}
@@ -82,7 +74,7 @@ extern ATTRIBUTES attrParameterItem[];
 InteractionItem::InteractionItem() // RETURN: -- None.
    : index( -1 ),
      parameter_queue(),
-     interaction_type( -1 ),
+     interaction_type( INTERACTION_TYPE_UNDEFINED ),
      parm_items_count( 0 ),
      parm_items( NULL ),
      user_supplied_tag_size( 0 ),
@@ -97,38 +89,38 @@ InteractionItem::InteractionItem() // RETURN: -- None.
  * @job_class{initialization}
  */
 InteractionItem::InteractionItem(
-   int                                               interaction_index,
-   int                                               interaction_type,
-   int                                               param_count,
-   Parameter                                        *parameters,
-   RTI1516_NAMESPACE::ParameterHandleValueMap const &theParameterValues,
-   RTI1516_USERDATA const                           &theUserSuppliedTag )
-   : index( interaction_index ),
+   int const                      inter_index,
+   InteractionTypeEnum const      inter_type,
+   int const                      param_count,
+   Parameter                     *parameters,
+   ParameterHandleValueMap const &theParameterValues,
+   RTI1516_USERDATA const        &theUserSuppliedTag )
+   : index( inter_index ),
      parameter_queue(),
-     interaction_type( -1 ),
+     interaction_type( inter_type ),
      parm_items_count( 0 ),
      parm_items( NULL ),
      order_is_TSO( false ),
      time()
 {
    // Decode the Interaction values into this Item.
-   initialize( interaction_type, param_count, parameters, theParameterValues, theUserSuppliedTag );
+   initialize( inter_type, param_count, parameters, theParameterValues, theUserSuppliedTag );
 }
 
 /*!
  * @job_class{initialization}
  */
 InteractionItem::InteractionItem(
-   int                                               interaction_index,
-   int                                               interaction_type,
-   int                                               param_count,
-   Parameter                                        *parameters,
-   RTI1516_NAMESPACE::ParameterHandleValueMap const &theParameterValues,
-   RTI1516_USERDATA const                           &theUserSuppliedTag,
-   RTI1516_NAMESPACE::LogicalTime const             &theTime )
-   : index( interaction_index ),
+   int const                      inter_index,
+   InteractionTypeEnum const      inter_type,
+   int const                      param_count,
+   Parameter                     *parameters,
+   ParameterHandleValueMap const &theParameterValues,
+   RTI1516_USERDATA const        &theUserSuppliedTag,
+   LogicalTime const             &theTime )
+   : index( inter_index ),
      parameter_queue(),
-     interaction_type( -1 ),
+     interaction_type( inter_type ),
      parm_items_count( 0 ),
      parm_items( NULL ),
      order_is_TSO( true ),
@@ -137,7 +129,7 @@ InteractionItem::InteractionItem(
    time.set( theTime );
 
    // Decode the Interaction values into this Item.
-   initialize( interaction_type, param_count, parameters, theParameterValues, theUserSuppliedTag );
+   initialize( inter_type, param_count, parameters, theParameterValues, theUserSuppliedTag );
 }
 
 /*!
@@ -148,8 +140,8 @@ InteractionItem::~InteractionItem()
    if ( user_supplied_tag != NULL ) {
       if ( trick_MM->is_alloced( static_cast< void * >( user_supplied_tag ) )
            && trick_MM->delete_var( static_cast< void * >( user_supplied_tag ) ) ) {
-         send_hs( stderr, "InteractionItem::~InteractionItem():%d WARNING failed to delete Trick Memory for 'user_supplied_tag'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "InteractionItem::~InteractionItem():%d WARNING failed to delete Trick Memory for 'user_supplied_tag'\n",
+                          __LINE__ );
       }
       user_supplied_tag      = NULL;
       user_supplied_tag_size = 0;
@@ -161,11 +153,11 @@ InteractionItem::~InteractionItem()
  * @job_class{initialization}
  */
 void InteractionItem::initialize(
-   int                                               inter_type,
-   int                                               param_count,
-   Parameter                                        *parameters,
-   RTI1516_NAMESPACE::ParameterHandleValueMap const &theParameterValues,
-   RTI1516_USERDATA const                           &theUserSuppliedTag )
+   InteractionTypeEnum const      inter_type,
+   int const                      param_count,
+   Parameter                     *parameters,
+   ParameterHandleValueMap const &theParameterValues,
+   RTI1516_USERDATA const        &theUserSuppliedTag )
 {
    this->interaction_type = inter_type;
 
@@ -173,7 +165,7 @@ void InteractionItem::initialize(
    for ( int p = 0; p < param_count; ++p ) {
       // Note that we are using a const_iterator since this map does not support
       // an iterator.
-      RTI1516_NAMESPACE::ParameterHandleValueMap::const_iterator param_iter;
+      ParameterHandleValueMap::const_iterator param_iter;
 
       // Get the parameter from the map.
       param_iter = theParameterValues.find( parameters[p].get_parameter_handle() );
@@ -189,8 +181,8 @@ void InteractionItem::initialize(
    if ( user_supplied_tag != NULL ) {
       if ( trick_MM->is_alloced( static_cast< void * >( user_supplied_tag ) )
            && trick_MM->delete_var( static_cast< void * >( user_supplied_tag ) ) ) {
-         send_hs( stderr, "InteractionItem::initialize():%d WARNING failed to delete Trick Memory for 'user_supplied_tag'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "InteractionItem::initialize():%d WARNING failed to delete Trick Memory for 'user_supplied_tag'\n",
+                          __LINE__ );
       }
       user_supplied_tag = NULL;
    }
@@ -252,8 +244,8 @@ void InteractionItem::clear_parm_items()
       }
       if ( trick_MM->is_alloced( static_cast< void * >( parm_items ) )
            && trick_MM->delete_var( static_cast< void * >( parm_items ) ) ) {
-         send_hs( stderr, "InteractionItem::clear_parm_items():%d WARNING failed to delete Trick Memory for 'parm_items'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "InteractionItem::clear_parm_items():%d WARNING failed to delete Trick Memory for 'parm_items'\n",
+                          __LINE__ );
       }
       parm_items       = NULL;
       parm_items_count = 0;

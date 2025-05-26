@@ -52,6 +52,7 @@ NASA, Johnson Space Center\n
 #include RTI1516_HEADER
 #pragma GCC diagnostic pop
 
+using namespace RTI1516_NAMESPACE;
 using namespace std;
 using namespace TrickHLA;
 
@@ -70,8 +71,8 @@ ParameterItem::ParameterItem()
 @job_class{initialization}
 */
 ParameterItem::ParameterItem(
-   int const                                    parameter_index,
-   RTI1516_NAMESPACE::VariableLengthData const *param_value )
+   int const                 parameter_index,
+   VariableLengthData const *param_value )
    : index( parameter_index ),
      size( 0 ),
      data( NULL )
@@ -100,7 +101,7 @@ void ParameterItem::clear()
 {
    if ( data != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( data ) ) ) {
-         send_hs( stderr, "ParameterItem::clear():%d WARNING failed to delete Trick Memory for 'data'\n", __LINE__ );
+         message_publish( MSG_WARNING, "ParameterItem::clear():%d WARNING failed to delete Trick Memory for 'data'\n", __LINE__ );
       }
       data  = NULL;
       size  = 0;

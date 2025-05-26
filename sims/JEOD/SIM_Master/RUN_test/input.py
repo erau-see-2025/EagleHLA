@@ -131,9 +131,9 @@ trick.exec_set_stack_trace(True)
 jeod_time.time_manager_init.initializer = "UTC"
 jeod_time.time_manager_init.sim_start_format = trick.TimeEnum.calendar
 
-jeod_time.time_utc.calendar_year   = 2023
-jeod_time.time_utc.calendar_month  =    7
-jeod_time.time_utc.calendar_day    =    4
+jeod_time.time_utc.calendar_year   = 2027
+jeod_time.time_utc.calendar_month  =    8
+jeod_time.time_utc.calendar_day    =   17
 jeod_time.time_utc.calendar_hour   =   12
 jeod_time.time_utc.calendar_minute =    0
 jeod_time.time_utc.calendar_second =  0.0
@@ -169,7 +169,7 @@ federate = SpaceFOMFederateConfig( thla_federate        = THLA.federate,
 # Set the name of the ExCO S_define instance.
 # We do not need to do this since we're using the ExCO default_data job
 # to configure the ExCO. This is only needed for input file configuration.
-#federate.set_ExCO_S_define_name( 'THLA_INIT.ExCO' )
+#federate.set_config_S_define_name( 'THLA_INIT.ExCO' )
 
 
 # Set the debug output level.

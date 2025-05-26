@@ -35,7 +35,6 @@ NASA, Johnson Space Center\n
 
 // Trick include files.
 #include "trick/exec_proto.h"
-#include "trick/message_proto.h" // for send_hs
 
 // TrickHLA include files.
 #include "TrickHLA/Attribute.hh"
@@ -110,7 +109,7 @@ void DynamicalEntityConditionalBase::initialize_callback(
    inertia_rate_attr = de_entity.inertia_rate_attr;
 
    // We must call the original function so that the callback is initialized.
-   this->PhysicalEntityConditionalBase::initialize_callback( obj );
+   PhysicalEntityConditionalBase::initialize_callback( obj );
 
    return;
 }
@@ -236,7 +235,7 @@ bool DynamicalEntityConditionalBase::should_send(
       // We did not find the attribute in the DynamicalEntity, so now check the
       // PhysicalEntity.  This call will terminate with an error message if
       // the attribute still isn't found.
-      if ( this->PhysicalEntityConditionalBase::should_send( attr ) ) {
+      if ( PhysicalEntityConditionalBase::should_send( attr ) ) {
 
          // Mark to send.
          send_attr = true;

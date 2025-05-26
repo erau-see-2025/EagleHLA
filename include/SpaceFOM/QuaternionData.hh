@@ -32,7 +32,11 @@ NASA, Johnson Space Center\n
 #ifndef SPACEFOM_QUATERNION_DATA_HH
 #define SPACEFOM_QUATERNION_DATA_HH
 
-// Trick includes.
+// System include files.
+#include <iostream>
+#include <string>
+
+// Trick include files.
 #include "trick/reference_frame.h"
 
 namespace SpaceFOM
@@ -76,6 +80,10 @@ class QuaternionData
     *  @param rhs Right operand data to compare to. */
    bool operator!=( QuaternionData const &rhs );
 
+   /*! @brief Print out the quaternion values.
+    *  @param stream Output stream. */
+   void print_data( std::ostream &stream = std::cout ) const;
+
    /***********************************************************************
     * QuaternionData methods.
     ***********************************************************************/
@@ -102,14 +110,14 @@ class QuaternionData
     *  @param angles   Euler attitude angels {rad}. */
    void get_Euler(
       Euler_Seq sequence,
-      double    angles[3] );
+      double    angles[3] ) const;
 
    /*! @brief Get Euler angles from attitude quaternion.
     *  @param sequence   Euler sequence of angles.
     *  @param angles_deg Euler attitude angels {deg}. */
    void get_Euler_deg(
       Euler_Seq sequence,
-      double    angles_deg[3] );
+      double    angles_deg[3] ) const;
 
    /*! @brief Set attitude quaternion from transformation matrix.
     *  @param T  Direction cosine transformation matrix. */
@@ -117,7 +125,7 @@ class QuaternionData
 
    /*! @brief Get transformation matrix from attitude quaternion.
     *  @param T  Direction cosine transformation matrix. */
-   void get_transfrom( double T[3][3] );
+   void get_transfrom( double T[3][3] ) const;
 
    /*! @brief Scale the attitude quaternion.
     *  @param factor Scale factor. */
@@ -137,7 +145,7 @@ class QuaternionData
    /*! @brief Normalize the attitude quaternion. */
    void normalize();
 
-   /*! @brief Normalize the attitude quaternion.
+   /*! @brief Compare attitude quaternions.
     *  @return True if equal and false if not.
     *  @param source Quaternion to compare to. */
    bool is_equal( QuaternionData const &source );

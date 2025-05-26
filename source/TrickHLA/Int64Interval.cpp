@@ -51,6 +51,7 @@ NASA, Johnson Space Center\n
 #include RTI1516_HEADER
 #pragma GCC diagnostic pop
 
+using namespace RTI1516_NAMESPACE;
 using namespace std;
 using namespace TrickHLA;
 
@@ -76,7 +77,7 @@ Int64Interval::Int64Interval(
  * @job_class{initialization}
  */
 Int64Interval::Int64Interval(
-   RTI1516_NAMESPACE::LogicalTimeInterval const &value )
+   LogicalTimeInterval const &value )
 {
    set( value );
 }
@@ -85,7 +86,7 @@ Int64Interval::Int64Interval(
  * @job_class{initialization}
  */
 Int64Interval::Int64Interval(
-   RTI1516_NAMESPACE::HLAinteger64Interval const &value )
+   HLAinteger64Interval const &value )
    : hla_interval( value )
 {
    return;
@@ -111,17 +112,17 @@ Int64Interval::~Int64Interval()
 
 int64_t Int64Interval::get_seconds() const
 {
-   return ( (int64_t)( this->hla_interval.getInterval() / Int64BaseTime::get_base_time_multiplier() ) );
+   return ( (int64_t)( hla_interval.getInterval() / Int64BaseTime::get_base_time_multiplier() ) );
 }
 
 int64_t Int64Interval::get_fractional_seconds() const
 {
-   return ( (int64_t)( this->hla_interval.getInterval() % Int64BaseTime::get_base_time_multiplier() ) );
+   return ( (int64_t)( hla_interval.getInterval() % Int64BaseTime::get_base_time_multiplier() ) );
 }
 
 int64_t Int64Interval::get_base_time() const
 {
-   return ( this->hla_interval.getInterval() );
+   return ( hla_interval.getInterval() );
 }
 
 double Int64Interval::get_time_in_seconds() const
@@ -133,7 +134,7 @@ double Int64Interval::get_time_in_seconds() const
 
 bool Int64Interval::is_zero() const
 {
-   return this->hla_interval.isZero();
+   return hla_interval.isZero();
 }
 
 wstring Int64Interval::to_wstring() const
@@ -158,9 +159,9 @@ void Int64Interval::set(
 }
 
 void Int64Interval::set(
-   RTI1516_NAMESPACE::LogicalTimeInterval const &value )
+   LogicalTimeInterval const &value )
 {
-   RTI1516_NAMESPACE::HLAinteger64Interval const &t = dynamic_cast< RTI1516_NAMESPACE::HLAinteger64Interval const & >( value );
+   HLAinteger64Interval const &t = dynamic_cast< HLAinteger64Interval const & >( value );
 
    this->hla_interval = t.getInterval();
 }

@@ -185,6 +185,10 @@ class PhysicalEntityBase : public TrickHLA::Packing, public TrickHLA::OpaqueBuff
   public:
    bool debug; ///< @trick_units{--} Debug output flag.
 
+   /*! @brief Get a constant reference to the PhysicalEntity packing data.
+    *  @return A constant reference to the PhysicalEntity packing data. */
+   PhysicalEntityData const &get_packing_data() { return ( pe_packing_data ); };
+
   protected:
    // Setup Object Attribute references. These are set in initialize_callback
    // routine and used for efficiency and ownership transfer in unpack routines.
@@ -208,7 +212,7 @@ class PhysicalEntityBase : public TrickHLA::Packing, public TrickHLA::OpaqueBuff
 
    /*! @brief Print out the packing data debug information.
     *  @param stream Output stream. */
-   virtual void debug_print( std::ostream &stream = std::cout );
+   virtual void debug_print( std::ostream &stream = std::cout ) const;
 
   private:
    // This object is not copyable

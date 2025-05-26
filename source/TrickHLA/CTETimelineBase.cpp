@@ -27,37 +27,45 @@ NASA, Johnson Space Center\n
 2101 NASA Parkway, Houston, TX  77058
 
 @tldh
-@trick_link_dependency{Timeline.cpp}
 @trick_link_dependency{CTETimelineBase.cpp}
+@trick_link_dependency{Timeline.cpp}
 
 @revs_title
 @revs_begin
 @rev_entry{Dan Dexter, NASA ER7, TrickHLA, June 2016, --, Initial version.}
 @rev_entry{Edwin Z. Crues, NASA ER7, TrickHLA, March 2019, --, Version 3 rewrite.}
+@rev_entry{Dan Dexter, NASA ER6, TrickHLA, March 2025, --, Made into base class.}
 @revs_end
 
 */
 
 // System include files.
+#include <sstream>
+#include <string>
 #include <time.h>
 
 // Trick include files.
 #include "trick/Clock.hh"
+#include "trick/RealtimeSync.hh"
+#include "trick/realtimesync_proto.h"
 
 // TrickHLA include files.
 #include "TrickHLA/CTETimelineBase.hh"
 
+using namespace std;
 using namespace Trick;
 using namespace TrickHLA;
 
 /*!
  * @job_class{initialization}
  */
-CTETimelineBase::CTETimelineBase()
-   : Clock( 1000000, "GetTimeOfDay - CLOCK_REALTIME" ),
-     clk_id( CLOCK_REALTIME )
+CTETimelineBase::CTETimelineBase(
+   unsigned long long const clock_tics_per_sec,
+   string const            &clock_name )
+   : Clock( clock_tics_per_sec, clock_name )
 {
-   return;
+   // Change the Trick real time clock to this clock.
+   real_time_change_clock( this );
 }
 
 /*!
@@ -73,70 +81,8 @@ CTETimelineBase::~CTETimelineBase()
  */
 int CTETimelineBase::clock_init()
 {
+   // Use this CTE timeline as the global Trick clock.
    set_global_clock();
+
    return 0;
-}
-
-/*!
- * @details Get the global time base on the CTE.
- */
-double const CTETimelineBase::get_time()
-{
-   struct timespec ts;
-   clock_gettime( CLOCK_REALTIME, &ts );
-   return ( (double)ts.tv_sec + ( (double)ts.tv_nsec * 0.000000001 ) );
-}
-
-/*!
- * @details Get the minimum time resolution, which is the smallest time
- * representation for this timeline.
- */
-double const CTETimelineBase::get_min_resolution()
-{
-   return ( 0.000000001 );
-}
-
-/*!
- * @details Call the system clock_gettime to get the current real time.
- */
-long long CTETimelineBase::wall_clock_time()
-{
-   struct timespec tp;
-   clock_gettime( clk_id, &tp );
-   return (long long)tp.tv_sec * 1000000LL + (long long)( ( tp.tv_nsec ) / 1000 );
-}
-
-/*!
- * @details This function is empty
- */
-int CTETimelineBase::clock_stop()
-{
-   return 0;
-}
-
-void CTETimelineBase::set_clock_ID( clockid_t const id )
-{
-   switch ( id ) {
-      case CLOCK_REALTIME: {
-         name = "GetTimeOfDay - CLOCK_REALTIME";
-         break;
-      }
-      case CLOCK_MONOTONIC: {
-         name = "GetTimeOfDay - CLOCK_MONOTONIC";
-         break;
-      }
-      case CLOCK_MONOTONIC_RAW: {
-         name = "GetTimeOfDay - CLOCK_MONOTONIC_RAW";
-         break;
-      }
-      default: {
-         name = "GetTimeOfDay - other";
-         break;
-      }
-   }
-}
-
-clockid_t const CTETimelineBase::get_clock_ID()
-{
-   return clk_id;
 }

@@ -99,7 +99,6 @@ RefFrameState::~RefFrameState()
 void RefFrameState::configure(
    RefFrameData *ref_frame_data_ptr )
 {
-
    // First call the base class pre_initialize function.
    RefFrameBase::configure();
 
@@ -122,7 +121,6 @@ void RefFrameState::configure(
  */
 void RefFrameState::initialize()
 {
-
    // Set the reference to the reference frame.
    if ( ref_frame_data == NULL ) {
       ostringstream errmsg;
@@ -153,8 +151,8 @@ void RefFrameState::pack_from_working_data()
          if ( strcmp( ref_frame_data->parent_name, packing_data.parent_name ) ) {
             // Frames are different, so reassign the new frame string.
             if ( trick_MM->delete_var( static_cast< void * >( packing_data.parent_name ) ) ) {
-               send_hs( stderr, "RefFrameState::pack_from_working_data():%d WARNING failed to delete Trick Memory for 'packing_data.parent_name'\n",
-                        __LINE__ );
+               message_publish( MSG_WARNING, "RefFrameState::pack_from_working_data():%d WARNING failed to delete Trick Memory for 'packing_data.parent_name'\n",
+                                __LINE__ );
             }
             packing_data.parent_name = trick_MM->mm_strdup( ref_frame_data->parent_name );
          }
@@ -164,10 +162,11 @@ void RefFrameState::pack_from_working_data()
    } else {
       if ( packing_data.parent_name != NULL ) {
          if ( trick_MM->delete_var( static_cast< void * >( packing_data.parent_name ) ) ) {
-            send_hs( stderr, "RefFrameState::pack_from_working_data():%d WARNING failed to delete Trick Memory for 'packing_data.parent_name'\n",
-                     __LINE__ );
+            message_publish( MSG_WARNING, "RefFrameState::pack_from_working_data():%d WARNING failed to delete Trick Memory for 'packing_data.parent_name'\n",
+                             __LINE__ );
          }
-         packing_data.parent_name = NULL;
+         // For a NULL parent frame, we must pack an 'empty' string.
+         packing_data.parent_name = trick_MM->mm_strdup( "" );
       }
    }
 
@@ -176,12 +175,14 @@ void RefFrameState::pack_from_working_data()
    for ( iinc = 0; iinc < 3; ++iinc ) {
       packing_data.state.pos[iinc] = ref_frame_data->state.pos[iinc];
       packing_data.state.vel[iinc] = ref_frame_data->state.vel[iinc];
+      packing_data.accel[iinc]     = ref_frame_data->accel[iinc];
    }
    // Attitude quaternion.
    packing_data.state.att.scalar = ref_frame_data->state.att.scalar;
    for ( iinc = 0; iinc < 3; ++iinc ) {
       packing_data.state.att.vector[iinc] = ref_frame_data->state.att.vector[iinc];
       packing_data.state.ang_vel[iinc]    = ref_frame_data->state.ang_vel[iinc];
+      packing_data.ang_accel[iinc]        = ref_frame_data->ang_accel[iinc];
    }
    // Time tag for this state data.
    packing_data.state.time = ref_frame_data->state.time = get_scenario_time();
@@ -194,7 +195,6 @@ void RefFrameState::pack_from_working_data()
  */
 void RefFrameState::unpack_into_working_data()
 {
-
    // If the HLA attribute has changed and is remotely owned (i.e. is
    // coming from another federate) then override our simulation state with the
    // incoming value.  If we locally own the attribute then we do not want to
@@ -209,8 +209,8 @@ void RefFrameState::unpack_into_working_data()
       if ( ref_frame_data->name != NULL ) {
          if ( !strcmp( ref_frame_data->name, packing_data.name ) ) {
             if ( trick_MM->delete_var( static_cast< void * >( ref_frame_data->name ) ) ) {
-               send_hs( stderr, "RefFrameState::unpack_into_working_data():%d WARNING failed to delete Trick Memory for 'ref_frame_data->name'\n",
-                        __LINE__ );
+               message_publish( MSG_WARNING, "RefFrameState::unpack_into_working_data():%d WARNING failed to delete Trick Memory for 'ref_frame_data->name'\n",
+                                __LINE__ );
             }
             ref_frame_data->name = trick_MM->mm_strdup( packing_data.name );
          }
@@ -223,8 +223,8 @@ void RefFrameState::unpack_into_working_data()
       if ( ref_frame_data->parent_name != NULL ) {
          if ( !strcmp( ref_frame_data->parent_name, packing_data.parent_name ) ) {
             if ( trick_MM->delete_var( static_cast< void * >( ref_frame_data->parent_name ) ) ) {
-               send_hs( stderr, "RefFrameState::unpack_into_working_data():%d WARNING failed to delete Trick Memory for 'ref_frame_data->parent_name'\n",
-                        __LINE__ );
+               message_publish( MSG_WARNING, "RefFrameState::unpack_into_working_data():%d WARNING failed to delete Trick Memory for 'ref_frame_data->parent_name'\n",
+                                __LINE__ );
             }
 
             if ( packing_data.parent_name[0] != '\0' ) {
@@ -258,6 +258,18 @@ void RefFrameState::unpack_into_working_data()
       // Time tag for this state data.
       ref_frame_data->state.time = packing_data.state.time;
    }
+
+   // FIXME: Need to support acceleration data.
+   // if ( accel_attr->is_received() ) {
+   //   for ( int iinc = 0; iinc < 3; ++iinc ) {
+   //      ref_frame_data->accel[iinc] = packing_data.accel[iinc];
+   //   }
+   //}
+   // if ( ang_accel_attr->is_received() ) {
+   //   for ( int iinc = 0; iinc < 3; ++iinc ) {
+   //    ref_frame_data->ang_accel[iinc] = packing_data.ang_accel[iinc];
+   //   }
+   //}
 
    return;
 }

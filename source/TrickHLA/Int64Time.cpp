@@ -80,7 +80,7 @@ Int64Time::Int64Time(
  * @job_class{initialization}
  */
 Int64Time::Int64Time(
-   RTI1516_NAMESPACE::LogicalTime const &value )
+   LogicalTime const &value )
 {
    set( value );
 }
@@ -89,7 +89,7 @@ Int64Time::Int64Time(
  * @job_class{initialization}
  */
 Int64Time::Int64Time(
-   RTI1516_NAMESPACE::HLAinteger64Time const &value )
+   HLAinteger64Time const &value )
    : hla_time( value )
 {
    return;
@@ -115,28 +115,28 @@ Int64Time::~Int64Time()
 
 RTI1516_USERDATA Int64Time::encode() const
 {
-   return this->hla_time.encode();
+   return hla_time.encode();
 }
 
 void Int64Time::decode(
    RTI1516_USERDATA const &user_supplied_tag )
 {
-   this->hla_time.decode( user_supplied_tag );
+   hla_time.decode( user_supplied_tag );
 }
 
 int64_t Int64Time::get_seconds() const
 {
-   return ( (int64_t)( this->hla_time.getTime() / Int64BaseTime::get_base_time_multiplier() ) );
+   return ( (int64_t)( hla_time.getTime() / Int64BaseTime::get_base_time_multiplier() ) );
 }
 
 int64_t Int64Time::get_fractional_seconds() const
 {
-   return ( (int64_t)( this->hla_time.getTime() % Int64BaseTime::get_base_time_multiplier() ) );
+   return ( (int64_t)( hla_time.getTime() % Int64BaseTime::get_base_time_multiplier() ) );
 }
 
 int64_t Int64Time::get_base_time() const
 {
-   return ( this->hla_time.getTime() );
+   return ( hla_time.getTime() );
 }
 
 double Int64Time::get_time_in_seconds() const
@@ -156,7 +156,7 @@ string Int64Time::to_string() const
 void Int64Time::set(
    int64_t const value )
 {
-   this->hla_time.setTime( value );
+   hla_time.setTime( value );
 }
 
 void Int64Time::set(
@@ -166,9 +166,9 @@ void Int64Time::set(
 }
 
 void Int64Time::set(
-   RTI1516_NAMESPACE::LogicalTime const &value )
+   LogicalTime const &value )
 {
-   RTI1516_NAMESPACE::HLAinteger64Time const &t = dynamic_cast< RTI1516_NAMESPACE::HLAinteger64Time const & >( value );
+   HLAinteger64Time const &t = dynamic_cast< HLAinteger64Time const & >( value );
 
    this->hla_time = t.getTime();
 }

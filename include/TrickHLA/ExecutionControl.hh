@@ -73,7 +73,7 @@ class ExecutionControl : public TrickHLA::ExecutionControlBase
    ExecutionControl();
    /*! @brief Initialization constructor for the ExecutionControl class.
     *  @param exec_config The associated ExecutionControl class instance. */
-   explicit ExecutionControl( ExecutionConfiguration &exec_config );
+   explicit ExecutionControl( TrickHLA::ExecutionConfiguration &exec_config );
    /*! @brief Destructor for the TrickHLA ExecutionControl class. */
    virtual ~ExecutionControl();
 
@@ -111,7 +111,7 @@ class ExecutionControl : public TrickHLA::ExecutionControlBase
    virtual void setup_interaction_RTI_handles();
    /*! Add initialization synchronization points to regulate startup. */
    virtual void add_initialization_sync_points();
-   /*! Add initialization synchronization points to regulate startup. */
+   /*! Add multiphase initialization synchronization points to regulate startup. */
    virtual void add_multiphase_init_sync_points();
    /*! Clear any remaining multiphase initialization synchronization points
     *  that have not been achieved and wait for the federation to be
@@ -120,7 +120,7 @@ class ExecutionControl : public TrickHLA::ExecutionControlBase
    /*! @brief The RTI has announced the existence of a synchronization point.
     *  @param label             Sync-point label.
     *  @param user_supplied_tag Use supplied tag.*/
-   virtual void sync_point_announced(
+   virtual void sync_point_announced( // cppcheck-suppress [uselessOverride]
       std::wstring const     &label,
       RTI1516_USERDATA const &user_supplied_tag );
 
@@ -146,7 +146,7 @@ class ExecutionControl : public TrickHLA::ExecutionControlBase
     *  specific initialization synchronization points in sprecific orders.
     *  Currently, only the 'Simple' and 'DIS' scheme do not.
     *  @return True if ExecutionControl needs to wait on the initialization synchronization points. */
-   bool wait_for_init_sync_point()
+   bool is_wait_for_init_sync_point_supported()
    {
       return ( false );
    }
@@ -160,7 +160,7 @@ class ExecutionControl : public TrickHLA::ExecutionControlBase
     * @param theUserSuppliedTag Users tag.
     * @param theTime            HLA time for the interaction.
     * @param received_as_TSO    True if interaction was received by RTI as TSO. */
-   virtual void receive_interaction(
+   virtual bool receive_interaction(
       RTI1516_NAMESPACE::InteractionClassHandle const  &theInteraction,
       RTI1516_NAMESPACE::ParameterHandleValueMap const &theParameterValues,
       RTI1516_USERDATA const                           &theUserSuppliedTag,
@@ -176,6 +176,13 @@ class ExecutionControl : public TrickHLA::ExecutionControlBase
    {
       return true;
    };
+   /*! @brief Get a comma separated list of interaction FOM names used.
+    *  @return Comma separated list of interaction FOM names used. */
+   virtual std::string get_interaction_FOM_names()
+   {
+      // No interactions used by this execution control.
+      return "";
+   }
    /*! @brief Sets the next ExecutionControl run mode.
     *  @param exec_control Next ExecutionControl run mode. */
    virtual void set_next_execution_control_mode( TrickHLA::ExecutionControlEnum exec_control );

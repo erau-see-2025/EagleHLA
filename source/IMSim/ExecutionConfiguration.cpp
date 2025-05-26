@@ -77,8 +77,8 @@ NASA, Johnson Space Center\n
 #include RTI1516_HEADER
 #pragma GCC diagnostic pop
 
-using namespace std;
 using namespace RTI1516_NAMESPACE;
+using namespace std;
 using namespace TrickHLA;
 using namespace IMSim;
 
@@ -97,7 +97,8 @@ extern ATTRIBUTES attrIMSim__ExecutionConfiguration[];
  * @job_class{initialization}
  */
 ExecutionConfiguration::ExecutionConfiguration()
-   : owner( NULL ),
+   : TrickHLA::ExecutionConfigurationBase(),
+     owner( NULL ),
      scenario( NULL ),
      mode( NULL ),
      run_duration( -1 ),
@@ -129,7 +130,7 @@ ExecutionConfiguration::ExecutionConfiguration()
  */
 ExecutionConfiguration::ExecutionConfiguration(
    char const *s_define_name )
-   : ExecutionConfigurationBase( s_define_name ),
+   : TrickHLA::ExecutionConfigurationBase( s_define_name ),
      owner( NULL ),
      scenario( NULL ),
      mode( NULL ),
@@ -167,29 +168,29 @@ ExecutionConfiguration::~ExecutionConfiguration() // RETURN: -- None.
    // Free the allocated strings.
    if ( this->owner != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->owner ) ) ) {
-         send_hs( stderr, "IMSim::ExecutionConfiguration::~ExecutionConfiguration():%d WARNING failed to delete Trick Memory for 'this->owner'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "IMSim::ExecutionConfiguration::~ExecutionConfiguration():%d WARNING failed to delete Trick Memory for 'this->owner'\n",
+                          __LINE__ );
       }
       this->owner = NULL;
    }
    if ( this->scenario != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->scenario ) ) ) {
-         send_hs( stderr, "IMSim::ExecutionConfiguration::~ExecutionConfiguration():%d WARNING failed to delete Trick Memory for 'this->scenario'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "IMSim::ExecutionConfiguration::~ExecutionConfiguration():%d WARNING failed to delete Trick Memory for 'this->scenario'\n",
+                          __LINE__ );
       }
       this->scenario = NULL;
    }
    if ( this->mode != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->mode ) ) ) {
-         send_hs( stderr, "IMSim::ExecutionConfiguration::~ExecutionConfiguration():%d WARNING failed to delete Trick Memory for 'this->mode'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "IMSim::ExecutionConfiguration::~ExecutionConfiguration():%d WARNING failed to delete Trick Memory for 'this->mode'\n",
+                          __LINE__ );
       }
       this->mode = NULL;
    }
    if ( this->required_federates != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->required_federates ) ) ) {
-         send_hs( stderr, "IMSim::ExecutionConfiguration::~ExecutionConfiguration():%d WARNING failed to delete Trick Memory for 'this->required_federates'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "IMSim::ExecutionConfiguration::~ExecutionConfiguration():%d WARNING failed to delete Trick Memory for 'this->required_federates'\n",
+                          __LINE__ );
       }
       this->owner = required_federates;
    }
@@ -203,7 +204,6 @@ ExecutionConfiguration::~ExecutionConfiguration() // RETURN: -- None.
 void ExecutionConfiguration::configure_attributes(
    char const *sim_config_name )
 {
-
    // Check to make sure we have a reference to the TrickHLA::FedAmb.
    if ( sim_config_name == NULL ) {
       ostringstream errmsg;
@@ -215,14 +215,14 @@ void ExecutionConfiguration::configure_attributes(
    // Set the S_define instance name.
    if ( this->S_define_name != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( const_cast< char * >( this->S_define_name ) ) ) ) {
-         send_hs( stderr, "IMSim::ExecutionConfiguration::configure_attributes():%d WARNING failed to delete Trick Memory for 'this->S_define_name'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "IMSim::ExecutionConfiguration::configure_attributes():%d WARNING failed to delete Trick Memory for 'this->S_define_name'\n",
+                          __LINE__ );
       }
       this->S_define_name = trick_MM->mm_strdup( sim_config_name );
    }
 
    // Now call the default configure_attributes function.
-   this->configure_attributes();
+   configure_attributes();
 
    return;
 }
@@ -233,7 +233,6 @@ void ExecutionConfiguration::configure_attributes(
  */
 void ExecutionConfiguration::configure_attributes()
 {
-
    // Check to make sure we have an S_define name for this simulation configuration instance.
    if ( S_define_name == NULL ) {
       ostringstream errmsg;
@@ -381,18 +380,18 @@ IMSim::ExecutionControl *ExecutionConfiguration::get_imsim_control()
 void ExecutionConfiguration::pack()
 {
    if ( DebugHandler::show( DEBUG_LEVEL_1_TRACE, DEBUG_SOURCE_EXECUTION_CONFIG ) ) {
-      cout << "=============================================================\n"
-           << "IMSim::ExecutionConfiguration::pack():" << __LINE__ << '\n'
-           << "\t Current Scenario Time:   " << setprecision( 18 ) << execution_control->scenario_timeline->get_time() << '\n'
-           << "\t Current Simulation Time: " << the_exec->get_sim_time() << '\n'
-           << "\t Current HLA grant time:  " << get_federate()->get_granted_time().get_time_in_seconds() << '\n'
-           << "\t Current HLA request time:" << get_federate()->get_requested_time().get_time_in_seconds() << '\n'
-           << ".............................................................\n";
-      this->print_simconfig( cout );
-      cout << "=============================================================\n";
+      ostringstream msg;
+      msg << "=============================================================\n"
+          << "IMSim::ExecutionConfiguration::pack():" << __LINE__ << '\n'
+          << "\t Current Scenario Time:   " << setprecision( 18 ) << execution_control->scenario_timeline->get_time() << '\n'
+          << "\t Current Simulation Time: " << the_exec->get_sim_time() << '\n'
+          << "\t Current HLA grant time:  " << get_federate()->get_granted_time().get_time_in_seconds() << '\n'
+          << "\t Current HLA request time:" << get_federate()->get_requested_time().get_time_in_seconds() << '\n'
+          << ".............................................................\n";
+      print_simconfig( msg );
+      msg << "=============================================================\n";
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
-
-   return;
 }
 
 /*!
@@ -400,17 +399,18 @@ void ExecutionConfiguration::pack()
 */
 void ExecutionConfiguration::unpack()
 {
-
    if ( DebugHandler::show( DEBUG_LEVEL_1_TRACE, DEBUG_SOURCE_EXECUTION_CONFIG ) ) {
-      cout << "=============================================================\n"
-           << "IMSim::ExecutionConfiguration::unpack():" << __LINE__ << '\n'
-           << "\t Current Scenario Time:   " << setprecision( 18 ) << execution_control->scenario_timeline->get_time() << '\n'
-           << "\t Current Simulation Time: " << the_exec->get_sim_time() << '\n'
-           << "\t Current HLA grant time:  " << get_federate()->get_granted_time().get_time_in_seconds() << '\n'
-           << "\t Current HLA request time:" << get_federate()->get_requested_time().get_time_in_seconds() << '\n'
-           << ".............................................................\n";
-      this->print_simconfig( cout );
-      cout << "=============================================================\n";
+      ostringstream msg;
+      msg << "=============================================================\n"
+          << "IMSim::ExecutionConfiguration::unpack():" << __LINE__ << '\n'
+          << "\t Current Scenario Time:   " << setprecision( 18 ) << execution_control->scenario_timeline->get_time() << '\n'
+          << "\t Current Simulation Time: " << the_exec->get_sim_time() << '\n'
+          << "\t Current HLA grant time:  " << get_federate()->get_granted_time().get_time_in_seconds() << '\n'
+          << "\t Current HLA request time:" << get_federate()->get_requested_time().get_time_in_seconds() << '\n'
+          << ".............................................................\n";
+      print_simconfig( msg );
+      msg << "=============================================================\n";
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 
    // Mark that we have a Simulation Configuration update with pending changes.
@@ -423,8 +423,8 @@ void ExecutionConfiguration::set_owner(
    // Free the Trick memory if it's already allocated.
    if ( this->owner != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->owner ) ) ) {
-         send_hs( stderr, "IMSim::ExecutionConfiguration::set_owner():%d WARNING failed to delete Trick Memory for 'this->owner'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "IMSim::ExecutionConfiguration::set_owner():%d WARNING failed to delete Trick Memory for 'this->owner'\n",
+                          __LINE__ );
       }
       this->owner = NULL;
    }
@@ -439,8 +439,8 @@ void ExecutionConfiguration::set_scenario(
    // Free the Trick memory if it's already allocated.
    if ( this->scenario != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->scenario ) ) ) {
-         send_hs( stderr, "IMSim::ExecutionConfiguration::set_scenario():%d WARNING failed to delete Trick Memory for 'this->scenario'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "IMSim::ExecutionConfiguration::set_scenario():%d WARNING failed to delete Trick Memory for 'this->scenario'\n",
+                          __LINE__ );
       }
       this->scenario = NULL;
    }
@@ -455,8 +455,8 @@ void ExecutionConfiguration::set_mode(
    // Free the Trick memory if it's already allocated.
    if ( this->mode != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->mode ) ) ) {
-         send_hs( stderr, "IMSim::ExecutionConfiguration::set_mode():%d WARNING failed to delete Trick Memory for 'this->mode'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "IMSim::ExecutionConfiguration::set_mode():%d WARNING failed to delete Trick Memory for 'this->mode'\n",
+                          __LINE__ );
       }
       this->mode = NULL;
    }
@@ -471,8 +471,8 @@ void ExecutionConfiguration::set_required_federates(
    // Free the Trick memory if it's already allocated.
    if ( this->required_federates != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->required_federates ) ) ) {
-         send_hs( stderr, "IMSim::ExecutionConfiguration::set_required_federates():%d WARNING failed to delete Trick Memory for 'this->required_federates'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "IMSim::ExecutionConfiguration::set_required_federates():%d WARNING failed to delete Trick Memory for 'this->required_federates'\n",
+                          __LINE__ );
       }
       this->required_federates = NULL;
    }
@@ -489,24 +489,24 @@ void ExecutionConfiguration::setup_ref_attributes(
 {
    ostringstream errormsg;
    errormsg << "IMSim::ExecutionConfiguration::setup_ref_attributes():" << __LINE__
-            << " ERROR: This routine does NOT work and should not be called!"
-            << '\n';
+            << " ERROR: This routine does NOT work and should not be called!\n";
    DebugHandler::terminate_with_message( errormsg.str() );
    return;
 }
 
-void ExecutionConfiguration::print_execution_configuration()
+void ExecutionConfiguration::print_execution_configuration() const
 {
-   cout << "=============================================================\n"
-        << "IMSim::ExecutionConfiguration::print_execution_configuration():" << __LINE__ << '\n';
-   this->print_simconfig( cout );
-   cout << "=============================================================\n";
-   return;
+   ostringstream msg;
+   msg << "=============================================================\n"
+       << "IMSim::ExecutionConfiguration::print_execution_configuration():" << __LINE__ << '\n';
+   print_simconfig( msg );
+   msg << "=============================================================\n";
+   message_publish( MSG_NORMAL, msg.str().c_str() );
 }
 
-void ExecutionConfiguration::print_simconfig( std::ostream &stream )
+void ExecutionConfiguration::print_simconfig( std::ostream &stream ) const
 {
-   stream << "\t Object-Name:         '" << this->get_name() << "'\n"
+   stream << "\t Object-Name:         '" << get_name() << "'\n"
           << "\t owner:               '" << owner << '\n'
           << "\t scenario:            " << scenario << '\n'
           << "\t mode:                " << mode << '\n'
@@ -525,31 +525,31 @@ bool ExecutionConfiguration::wait_for_update() // RETURN: -- None.
    Federate *federate = get_federate();
 
    // We can only receive the exec-configuration if we are not the master.
-   if ( this->execution_control->is_master() ) {
+   if ( execution_control->is_master() ) {
       return false;
    }
 
    if ( DebugHandler::show( DEBUG_LEVEL_2_TRACE, DEBUG_SOURCE_EXECUTION_CONFIG ) ) {
-      send_hs( stdout, "IMSim::ExecutionConfiguration::wait_for_update():%d Waiting...\n",
-               __LINE__ );
+      message_publish( MSG_NORMAL, "IMSim::ExecutionConfiguration::wait_for_update():%d Waiting...\n",
+                       __LINE__ );
    }
 
    // Make sure we have at least one piece of exec-config data we can receive.
-   if ( this->any_remotely_owned_subscribed_init_attribute() ) {
+   if ( any_remotely_owned_subscribed_init_attribute() ) {
 
       int64_t      wallclock_time;
       SleepTimeout print_timer( federate->wait_status_time );
       SleepTimeout sleep_timer( THLA_LOW_LATENCY_SLEEP_WAIT_IN_MICROS );
 
       // Wait for the data to arrive.
-      while ( !this->is_changed() ) {
+      while ( !is_changed() ) {
 
          // Check for shutdown.
          federate->check_for_shutdown_with_termination();
 
          sleep_timer.sleep();
 
-         if ( !this->is_changed() ) {
+         if ( !is_changed() ) {
 
             // To be more efficient, we get the time once and share it.
             wallclock_time = sleep_timer.time();
@@ -563,27 +563,26 @@ bool ExecutionConfiguration::wait_for_update() // RETURN: -- None.
                          << " This means we are either not connected to the"
                          << " RTI or we are no longer joined to the federation"
                          << " execution because someone forced our resignation at"
-                         << " the Central RTI Component (CRC) level!"
-                         << '\n';
+                         << " the Central RTI Component (CRC) level!\n";
                   DebugHandler::terminate_with_message( errmsg.str() );
                }
             }
 
             if ( print_timer.timeout( wallclock_time ) ) {
                print_timer.reset();
-               send_hs( stdout, "IMSim::ExecutionConfiguration::wait_for_update():%d Waiting...\n",
-                        __LINE__ );
+               message_publish( MSG_NORMAL, "IMSim::ExecutionConfiguration::wait_for_update():%d Waiting...\n",
+                                __LINE__ );
             }
          }
       }
 
       if ( DebugHandler::show( DEBUG_LEVEL_2_TRACE, DEBUG_SOURCE_EXECUTION_CONFIG ) ) {
-         send_hs( stdout, "IMSim::ExecutionConfiguration::wait_for_update():%d Received data.\n",
-                  __LINE__ );
+         message_publish( MSG_NORMAL, "IMSim::ExecutionConfiguration::wait_for_update():%d Received data.\n",
+                          __LINE__ );
       }
 
       // Receive the exec-config data from the master federate.
-      this->receive_init_data();
+      receive_init_data();
 
    } else {
       ostringstream errmsg;
@@ -592,8 +591,7 @@ bool ExecutionConfiguration::wait_for_update() // RETURN: -- None.
              << " is not configured to receive at least one object attribute."
              << " Make sure at least one 'exec_config' attribute has"
              << " 'subscribe = true' set. Please check your input or modified-data"
-             << " files to make sure the 'subscribe' value is correctly specified."
-             << '\n';
+             << " files to make sure the 'subscribe' value is correctly specified.\n";
       DebugHandler::terminate_with_message( errmsg.str() );
    }
 

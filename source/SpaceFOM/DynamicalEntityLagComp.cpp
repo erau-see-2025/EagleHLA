@@ -38,7 +38,7 @@ NASA, Johnson Space Center\n
 // Trick include files.
 #include "trick/Integrator.hh"
 #include "trick/MemoryManager.hh"
-#include "trick/message_proto.h" // for send_hs
+#include "trick/message_proto.h"
 #include "trick/trick_math.h"
 
 // TrickHLA include files.
@@ -60,7 +60,6 @@ using namespace SpaceFOM;
 DynamicalEntityLagComp::DynamicalEntityLagComp( DynamicalEntityBase &entity_ref ) // RETURN: -- None.
    : DynamicalEntityLagCompInteg( entity_ref )
 {
-
    // Assign the integrator state references.
    // Translational position
    integ_states[0] = &( this->lag_comp_data.pos[0] );
@@ -89,8 +88,8 @@ DynamicalEntityLagComp::~DynamicalEntityLagComp() // RETURN: -- None.
    // Free up any allocated intergrator.
    if ( this->integrator != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->integrator ) ) ) {
-         send_hs( stderr, "SpaceFOM::DynamicalEntityBase::~DynamicalEntityBase():%d WARNING failed to delete Trick Memory for 'this->integrator'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::DynamicalEntityBase::~DynamicalEntityBase():%d WARNING failed to delete Trick Memory for 'this->integrator'\n",
+                          __LINE__ );
       }
       this->integrator = NULL;
    }
@@ -101,7 +100,6 @@ DynamicalEntityLagComp::~DynamicalEntityLagComp() // RETURN: -- None.
  */
 void DynamicalEntityLagComp::initialize()
 {
-
    // Create and get a reference to the Trick Euler integrator.
    this->integrator = Trick::getIntegrator( Euler, 26, this->integ_dt );
 
@@ -179,19 +177,17 @@ void DynamicalEntityLagComp::load()
  */
 void DynamicalEntityLagComp::unload()
 {
-
    // Unload state array: position and velocity.
    for ( int iinc = 0; iinc < 13; ++iinc ) {
       *( integ_states[iinc] ) = integrator->state[iinc];
    }
 
    // Normalize the propagated attitude quaternion.
-   this->lag_comp_data.att.normalize();
+   lag_comp_data.att.normalize();
 
    // Compute the derivative of the attitude quaternion from the
    // angular velocity vector.
-   this->Q_dot.derivative_first( this->lag_comp_data.att,
-                                 this->lag_comp_data.ang_vel );
+   Q_dot.derivative_first( this->lag_comp_data.att, this->lag_comp_data.ang_vel );
 
    // Return to calling routine.
    return;
@@ -222,14 +218,13 @@ void DynamicalEntityLagComp::derivative_first(
 
    // Compute the derivative of the attitude quaternion from the
    // angular velocity vector.
-   this->Q_dot.derivative_first( this->lag_comp_data.att,
-                                 this->lag_comp_data.ang_vel );
+   Q_dot.derivative_first( this->lag_comp_data.att, this->lag_comp_data.ang_vel );
 
    //
    // Compute the translational dynamics.
    //
    // Transform the force into the body frame.
-   this->body_wrt_struct.transform_vector( this->force, force_bdy );
+   body_wrt_struct.transform_vector( this->force, force_bdy );
 
    // Compute the force contribution to the translational acceleration.
    V_SCALE( accel_force_bdy, force_bdy, 1.0 / this->mass );
@@ -241,7 +236,7 @@ void DynamicalEntityLagComp::derivative_first(
    // Compute the rotational dynamics.
    //
    // Transform the torque into the body frame.
-   this->body_wrt_struct.transform_vector( this->torque, torque_bdy );
+   body_wrt_struct.transform_vector( this->torque, torque_bdy );
 
    // External torque acceleration.
    MxV( ang_accel_torque_bdy, this->inertia_inv, torque_bdy );

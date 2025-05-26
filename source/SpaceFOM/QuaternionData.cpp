@@ -45,7 +45,7 @@ using namespace SpaceFOM;
  */
 QuaternionData::QuaternionData()
 {
-   this->initialize();
+   initialize();
 }
 
 /*!
@@ -53,7 +53,7 @@ QuaternionData::QuaternionData()
  */
 QuaternionData::QuaternionData( QuaternionData const &source )
 {
-   this->copy( source );
+   copy( source );
 }
 
 /*!
@@ -63,7 +63,7 @@ QuaternionData::QuaternionData(
    Euler_Seq    sequence,
    double const angles[3] )
 {
-   this->set_from_Euler( sequence, angles );
+   set_from_Euler( sequence, angles );
 }
 
 /*!
@@ -72,7 +72,7 @@ QuaternionData::QuaternionData(
 QuaternionData::QuaternionData(
    double const T[3][3] )
 {
-   this->set_from_transfrom( T );
+   set_from_transfrom( T );
 }
 
 /***********************************************************************
@@ -98,7 +98,7 @@ QuaternionData &QuaternionData::operator=(
 bool QuaternionData::operator==(
    QuaternionData const &rhs )
 {
-   return ( this->is_equal( rhs ) );
+   return ( is_equal( rhs ) );
 }
 
 /*!
@@ -107,7 +107,33 @@ bool QuaternionData::operator==(
 bool QuaternionData::operator!=(
    QuaternionData const &rhs )
 {
-   return ( !( this->is_equal( rhs ) ) );
+   return ( !( is_equal( rhs ) ) );
+}
+
+/*!
+ * @job_class{scheduled}
+ */
+void QuaternionData::print_data( std::ostream &stream ) const
+{
+   double euler_angles[3];
+
+   // Compute the attitude Euler angles.
+   get_Euler_deg( Roll_Pitch_Yaw, euler_angles );
+
+   // Set the print precision.
+   stream.precision( 15 );
+
+   stream << "\tattitude (s,v): "
+          << "\t\t" << scalar << "; "
+          << "\t\t" << vector[0] << ", "
+          << "\t\t" << vector[1] << ", "
+          << "\t\t" << vector[2] << '\n';
+   stream << "\tattitude (RPY){deg}: "
+          << "\t\t" << euler_angles[0] << ", "
+          << "\t\t" << euler_angles[1] << ", "
+          << "\t\t" << euler_angles[2] << '\n';
+
+   return;
 }
 
 /*!
@@ -115,7 +141,8 @@ bool QuaternionData::operator!=(
  */
 void QuaternionData::initialize()
 {
-   this->scalar    = 0.0;
+   // Initialize to a unit quaternion with no rotation.
+   this->scalar    = 1.0;
    this->vector[0] = 0.0;
    this->vector[1] = 0.0;
    this->vector[2] = 0.0;
@@ -153,9 +180,14 @@ void QuaternionData::set_from_Euler_deg(
  */
 void QuaternionData::get_Euler(
    Euler_Seq sequence,
-   double    angles[3] )
+   double    angles[3] ) const
 {
-   euler_quat( angles, &( this->scalar ), 1, sequence );
+   double work[4];
+   work[0] = this->scalar;
+   work[1] = this->vector[0];
+   work[2] = this->vector[1];
+   work[3] = this->vector[2];
+   euler_quat( angles, work, 1, sequence );
    return;
 }
 
@@ -164,10 +196,15 @@ void QuaternionData::get_Euler(
  */
 void QuaternionData::get_Euler_deg(
    Euler_Seq sequence,
-   double    angles_deg[3] )
+   double    angles_deg[3] ) const
 {
    double angles[3];
-   euler_quat( angles, &( this->scalar ), 1, sequence );
+   double work[4];
+   work[0] = this->scalar;
+   work[1] = this->vector[0];
+   work[2] = this->vector[1];
+   work[3] = this->vector[2];
+   euler_quat( angles, work, 1, sequence );
    angles_deg[0] = angles[0] * RTD;
    angles_deg[1] = angles[1] * RTD;
    angles_deg[2] = angles[2] * RTD;
@@ -180,7 +217,74 @@ void QuaternionData::get_Euler_deg(
 void QuaternionData::set_from_transfrom(
    double const T[3][3] )
 {
-   mat_to_quat( &( this->scalar ), (double( * )[3])T );
+   // NOTE: This code is from JEOD Quaternion::left_quat_from_transformation.
+
+   /*-------------------------------------------------------------------------
+    * Overview
+    * The goal is to find a unitary quaternion 'q' such that 'q' yields the
+    * same vector transformations as does the transformation matrix 'T'. The
+    * quaternion is unique save for an ambiguity in the sign of all the
+    * elements. The sign will be chosen such that the scalar part of the
+    * quaternion is non-negative.
+    * There are multiple methods to deriving the quaternion based on the
+    * matrix elements.  However, the base algorithm is susceptible to numerical
+    * inaccuracies.  To avoid precision loss, the forms best suited to the
+    * given matrix will be selected.  Method -1 is selected if the trace
+    * dominates the diagonal elements of the matrix. Method 0 is selected if
+    * the T_00 element dominates the trace and the other two elements. Methods
+    * 1 and 2 are selected when T_11 or T_22 dominates.
+    *------------------------------------------------------------------------*/
+
+   // Method identification parameters.
+   double tr;     /* Trace of input transformation matrix. */
+   double tr_max; /* Max of tr, diagonal elements */
+   int    method; /* Index of tr_max in tr (-1 if trace dominates) */
+
+   // Working parameters.
+   double qix2;     /* sqrt(1+max(tr,t_i)) */
+   double qix4_inv; /* 1/(4 * qs) */
+   int    ii;
+
+   /* Compute the trace of the matrix. */
+   tr = T[0][0] + T[1][1] + T[2][2];
+
+   /* Find the largest of the trace (method = -1) and the three diagonal
+    * elements of 'T' (method = 0, 1, or 2). */
+   method = -1;
+   tr_max = tr;
+   for ( ii = 0; ii < 3; ii++ ) {
+      if ( T[ii][ii] > tr_max ) {
+         method = ii;
+         tr_max = T[ii][ii];
+      }
+   }
+
+   /* Use method -1 when no diagonal element dominates the trace. */
+   if ( method == -1 ) {
+      qix2      = std::sqrt( 1.0 + tr );
+      qix4_inv  = 0.5 / qix2;
+      scalar    = 0.5 * qix2;
+      vector[0] = qix4_inv * ( T[2][1] - T[1][2] );
+      vector[1] = qix4_inv * ( T[0][2] - T[2][0] );
+      vector[2] = qix4_inv * ( T[1][0] - T[0][1] );
+
+   } /* Use method 0,1, or 2 based on the dominant diagonal element. */
+   else {
+      ii     = method;
+      int jj = ( ii + 1 ) % 3;
+      int kk = ( jj + 1 ) % 3;
+
+      double di = T[kk][jj] - T[jj][kk]; /* T_kj - T_jk */
+      qix2      = sqrt( 1.0 + T[ii][ii] - ( T[jj][jj] + T[kk][kk] ) );
+      if ( di < 0.0 ) {
+         qix2 = -qix2;
+      }
+      qix4_inv   = 0.5 / qix2;
+      vector[ii] = 0.5 * qix2;
+      vector[jj] = qix4_inv * ( T[ii][jj] + T[jj][ii] );
+      vector[kk] = qix4_inv * ( T[ii][kk] + T[kk][ii] );
+      scalar     = qix4_inv * di;
+   }
    return;
 }
 
@@ -188,9 +292,20 @@ void QuaternionData::set_from_transfrom(
  * @job_class{initialization}
  */
 void QuaternionData::get_transfrom(
-   double T[3][3] )
+   double T[3][3] ) const
 {
-   quat_to_mat( (double( * )[3])T, &( this->scalar ) );
+   double qsx2_2 = 2.0 * scalar * scalar;
+
+   T[0][0] = qsx2_2 + ( 2.0 * vector[0] * vector[0] ) - 1.0;
+   T[0][1] = 2.0 * ( ( vector[0] * vector[1] ) - ( scalar * vector[2] ) );
+   T[0][2] = 2.0 * ( ( vector[0] * vector[2] ) + ( scalar * vector[1] ) );
+   T[1][0] = 2.0 * ( ( vector[0] * vector[1] ) + ( scalar * vector[2] ) );
+   T[1][1] = qsx2_2 + ( 2.0 * vector[1] * vector[1] ) - 1.0;
+   T[1][2] = 2.0 * ( ( vector[1] * vector[2] ) - ( scalar * vector[0] ) );
+   T[2][0] = 2.0 * ( ( vector[0] * vector[2] ) - ( scalar * vector[1] ) );
+   T[2][1] = 2.0 * ( ( vector[1] * vector[2] ) + ( scalar * vector[0] ) );
+   T[2][2] = qsx2_2 + ( 2.0 * vector[2] * vector[2] ) - 1.0;
+
    return;
 }
 
@@ -418,7 +533,7 @@ void QuaternionData::multiply_sv(
    double      *ps,
    double       pv[3] )
 {
-   // We use a working area because we do not know it the product happens to
+   // We use a working area because we do not know if the product happens to
    // refer to either the left or right operands.
    double ws;
    double wv[3];
@@ -457,7 +572,7 @@ void QuaternionData::left_multiply_v(
    double      *ps,
    double       pv[3] )
 {
-   // We use a working area because we do not know it the product happens to
+   // We use a working area because we do not know if the product happens to
    // refer to either the left or right operands.
    double ws;
    double wv[3];
@@ -496,7 +611,7 @@ void QuaternionData::right_multiply_v(
    double      *ps,
    double       pv[3] )
 {
-   // We use a working area because we do not know it the product happens to
+   // We use a working area because we do not know if the product happens to
    // refer to either the left or right operands.
    double ws;
    double wv[3];

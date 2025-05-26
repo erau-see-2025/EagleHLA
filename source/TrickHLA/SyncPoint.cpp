@@ -46,8 +46,8 @@ NASA, Johnson Space Center\n
 #include RTI1516_HEADER
 #pragma GCC diagnostic pop
 
-using namespace std;
 using namespace RTI1516_NAMESPACE;
+using namespace std;
 using namespace TrickHLA;
 
 /*!
@@ -194,7 +194,7 @@ void SyncPoint::free_checkpoint()
 {
    if ( this->label_chkpt != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->label_chkpt ) ) ) {
-         send_hs( stderr, "SyncPoint::free_checkpoint():%d WARNING failed to delete Trick Memory for 'label_chkpt'\n", __LINE__ );
+         message_publish( MSG_WARNING, "SyncPoint::free_checkpoint():%d WARNING failed to delete Trick Memory for 'label_chkpt'\n", __LINE__ );
       }
       this->label_chkpt = NULL;
    }

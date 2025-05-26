@@ -69,7 +69,6 @@ SpaceTimeCoordinateEncoder::SpaceTimeCoordinateEncoder(
      time_encoder( &data.time ),
      encoder()
 {
-
    // Build up the encoders.
    // ObjectClass: ReferenceFrame, FOM-Module: SISO_SpaceFOM_environment.xml
    //   Attribute-Name: state, dataType: SpaceTimeCoordinateState, encoding: HLAfixedRecord, FOM-Module: SISO_SpaceFOM_datatypes.xml
@@ -150,10 +149,10 @@ void SpaceTimeCoordinateEncoder::encode()
       // Print message and terminate.
       ostringstream errmsg;
       errmsg << "SpaceFOM::SpaceTimeCoordinateEncoder::encode():" << __LINE__
-             << " Warning: Encoded data size does not match buffer!"
+             << " WARNING: Encoded data size does not match buffer!"
              << "    Encoded size: " << encoded_data.size()
              << " but Expected size: " << get_capacity();
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
    }
 
    return;

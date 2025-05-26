@@ -35,7 +35,7 @@ NASA, Johnson Space Center\n
 
 // Trick include files.
 #include "trick/exec_proto.h"
-#include "trick/message_proto.h" // for send_hs
+#include "trick/message_proto.h"
 
 // TrickHLA include files.
 #include "TrickHLA/Attribute.hh"
@@ -98,7 +98,7 @@ void PhysicalInterfaceConditionalBase::initialize_callback(
    TrickHLA::Object *obj )
 {
    // We must call the original function so that the callback is initialized.
-   this->Conditional::initialize_callback( obj );
+   Conditional::initialize_callback( obj );
 
    // Get references to all the TrickHLA::Attribute for this object status.
    // We do this here so that we only do the attribute lookup once instead of
@@ -133,9 +133,9 @@ bool PhysicalInterfaceConditionalBase::should_send(
          if ( prev_data.name != NULL ) {
             if ( strcmp( interface.packing_data.name, prev_data.name ) ) {
                if ( trick_MM->delete_var( static_cast< void * >( prev_data.name ) ) ) {
-                  send_hs( stderr,
-                           "PhysicalInterfaceConditionalBase::should_send():%d WARNING failed to delete Trick Memory for 'prev_data.name'\n",
-                           __LINE__ );
+                  message_publish( MSG_WARNING,
+                                   "PhysicalInterfaceConditionalBase::should_send():%d WARNING failed to delete Trick Memory for 'prev_data.name'\n",
+                                   __LINE__ );
                }
                // Update the previous value.
                prev_data.name = trick_MM->mm_strdup( interface.packing_data.name );
@@ -163,9 +163,9 @@ bool PhysicalInterfaceConditionalBase::should_send(
          if ( prev_data.parent_name != NULL ) {
             if ( strcmp( interface.packing_data.parent_name, prev_data.parent_name ) ) {
                if ( trick_MM->delete_var( static_cast< void * >( prev_data.parent_name ) ) ) {
-                  send_hs( stderr,
-                           "PhysicalInterfaceConditionalBase::should_send():%d WARNING failed to delete Trick Memory for 'prev_data.parent_name'\n",
-                           __LINE__ );
+                  message_publish( MSG_WARNING,
+                                   "PhysicalInterfaceConditionalBase::should_send():%d WARNING failed to delete Trick Memory for 'prev_data.parent_name'\n",
+                                   __LINE__ );
                }
                // Update the previous value.
                prev_data.parent_name = trick_MM->mm_strdup( interface.packing_data.parent_name );
@@ -186,8 +186,8 @@ bool PhysicalInterfaceConditionalBase::should_send(
          TrickHLA::DebugHandler::terminate_with_message( errmsg.str() );
       }
 
-   } // Check for change in position.
-   else if ( attr == position_attr ) {
+   } else if ( attr == position_attr ) {
+      // Check for change in position.
 
       if ( ( interface.packing_data.position[0] != prev_data.position[0] )
            || ( interface.packing_data.position[1] != prev_data.position[1] )
@@ -202,8 +202,8 @@ bool PhysicalInterfaceConditionalBase::should_send(
          send_attr = true;
       }
 
-   } // Check for change in interface attitude.
-   else if ( attr == attitude_attr ) {
+   } else if ( attr == attitude_attr ) {
+      // Check for change in interface attitude.
 
       if ( interface.packing_data.attitude != prev_data.attitude ) {
 
@@ -218,8 +218,7 @@ bool PhysicalInterfaceConditionalBase::should_send(
       ostringstream errmsg;
       errmsg << "PhysicalInterfaceConditionalBase::should_send("
              << attr->get_FOM_name() << "):" << __LINE__
-             << "ERROR: Could not find the data for the specified FOM attribute!"
-             << '\n';
+             << "ERROR: Could not find the data for the specified FOM attribute!\n";
       // Print message and terminate.
       TrickHLA::DebugHandler::terminate_with_message( errmsg.str() );
    }

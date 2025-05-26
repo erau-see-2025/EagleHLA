@@ -93,20 +93,20 @@ extern fpu_control_t __fpu_control;
 #   define _FPU_PC_PRINT( pc ) ( ( ( pc & _FPU_PC_MASK ) == _FPU_PC_EXTENDED ) ? "Extended Double-Precision 64-bit" : ( ( ( pc & _FPU_PC_MASK ) == _FPU_PC_DOUBLE ) ? "Double-Precision 53-bit" : ( ( ( pc & _FPU_PC_MASK ) == _FPU_PC_SINGLE ) ? "Single-Precision 24-bit" : "Undefined" ) ) )
 
 #   if defined( TRICKHLA_ENABLE_FPU_CONTROL_WORD_VALIDATION )
-#      define TRICKHLA_VALIDATE_FPU_CONTROL_WORD                                    \
-         {                                                                          \
-            TRICKHLA_SAVE_FPU_CONTROL_WORD;                                         \
-            if ( ( _fpu_cw & _FPU_PC_MASK ) != ( __fpu_control & _FPU_PC_MASK ) ) { \
-               send_hs( stderr, "%s:%d WARNING: We have detected that the current \
+#      define TRICKHLA_VALIDATE_FPU_CONTROL_WORD                                            \
+         {                                                                                  \
+            TRICKHLA_SAVE_FPU_CONTROL_WORD;                                                 \
+            if ( ( _fpu_cw & _FPU_PC_MASK ) != ( __fpu_control & _FPU_PC_MASK ) ) {         \
+               message_publish( MSG_WARNING, "%s:%d WARNING: We have detected that the current \
 Floating-Point Unit (FPU) Control-Word Precision-Control value (%#x: %s) does not \
 match the Precision-Control value at program startup (%#x: %s). The change in FPU \
 Control-Word Precision-Control could cause the numerical values in your simulation \
 to be slightly different in the 7th or 8th decimal place. Please contact the \
-TrickHLA team for support.\n",                                                      \
-                        __FILE__, __LINE__, ( _fpu_cw & _FPU_PC_MASK ),             \
-                        _FPU_PC_PRINT( _fpu_cw ), ( __fpu_control & _FPU_PC_MASK ), \
-                        _FPU_PC_PRINT( __fpu_control ) );                           \
-            }                                                                       \
+TrickHLA team for support.\n",                                                              \
+                                __FILE__, __LINE__, ( _fpu_cw & _FPU_PC_MASK ),             \
+                                _FPU_PC_PRINT( _fpu_cw ), ( __fpu_control & _FPU_PC_MASK ), \
+                                _FPU_PC_PRINT( __fpu_control ) );                           \
+            }                                                                               \
          }
 #   else
 #      define TRICKHLA_VALIDATE_FPU_CONTROL_WORD // FPU Control Word validation not enabled.
@@ -224,30 +224,29 @@ class Utilities
    /*! @brief Round to the next positive multiple of 8.
     *  @return The value rounded to the next positive multiple of 8.
     *  @param  value The value to round to next positive multiple of 8. */
-   static size_t next_positive_multiple_of_8( size_t const value );
+   static size_t const next_positive_multiple_of_8( size_t const value );
 
    /*! @brief Round to the next positive multiple of N.
     *  @return The value rounded to the next positive multiple of N.
     *  @param  value The value to round to next positive multiple of N.
     *  @param  n The number to round up the value to the next positive multiple of. */
-   static size_t next_positive_multiple_of_N( size_t const value, unsigned int const n );
+   static size_t const next_positive_multiple_of_N( size_t const value, unsigned int const n );
 
    /*! @brief Sleep for the specified number of microseconds. The usleep() C
     *  function is obsolete (see CWE-676). Create a wrapper around nanosleep()
     *  to provide the same functionality as usleep().
     *  @return Error code, where a value of 0 is for no error.
-    *  @param  usec Time to sleep in microseconds. */
+    *  @param usec Time to sleep in microseconds. */
    static int micro_sleep( long const usec );
 
-   /*! @brief Return the current TrickHLA version string from the auto
-    *  generated Version.hh header file.
-    *  @return Byteswap value. */
-   static std::string get_version();
+   /*! @brief Return the current TrickHLA version string from the Version.hh
+    *  header file.
+    *  @return TrickHKLA version string. */
+   static std::string const get_version();
 
-   /*! @brief Returns the TrickHLA release date from the auto generated
-    * Version.hh header file.
-    *  @return Byteswap value. */
-   static std::string get_release_date();
+   /*! @brief Returns the TrickHLA release date from the Version.hh header file.
+    *  @return TrickHLA release date string. */
+   static std::string const &get_release_date();
 
   private:
    // Do not allow the copy constructor or assignment operator.

@@ -55,11 +55,11 @@ class Timeline
    //-----------------------------------------------------------------
    // Constructors / destructors
    //-----------------------------------------------------------------
-   /*! @brief Initialization constructor for the TrickHLA CTETimelineBase class.
+   /*! @brief Initialization constructor for the TrickHLA Timeline class.
     *  @param t0 Epoch for the timeline. */
    explicit Timeline( double const t0 = 0.0 );
 
-   /*! @brief Pure virtual destructor for the TrickHLA CTETimelineBase class. */
+   /*! @brief Pure virtual destructor for the TrickHLA Timeline class. */
    virtual ~Timeline() = 0;
 
    //-----------------------------------------------------------------
@@ -106,10 +106,10 @@ class Timeline
       double const min_resolution = get_min_resolution();
       if ( min_resolution > DBL_MIN ) {
          // Compute the time in tics, which truncates to a fixed-point number.
-         long long const time_tics = value / min_resolution;
+         long long const time_tics = (long long)( value / min_resolution );
 
          // Convert to a time in seconds with the minimum time resolution.
-         return ( (double)time_tics * min_resolution );
+         return (double)( time_tics * min_resolution );
       }
       return ( value );
    }

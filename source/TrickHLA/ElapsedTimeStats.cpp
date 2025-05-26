@@ -32,7 +32,9 @@ NASA, Johnson Space Center\n
 #include <string>
 
 // Trick include files.
+#include "trick/Executive.hh"
 #include "trick/clock_proto.h"
+#include "trick/exec_proto.h"
 
 // TrickHLA include files.
 #include "TrickHLA/ElapsedTimeStats.hh"
@@ -69,7 +71,13 @@ ElapsedTimeStats::~ElapsedTimeStats()
  */
 void ElapsedTimeStats::measure()
 {
-   int64_t time = clock_wall_time(); // in microseconds
+   // Number of time tics per second.
+   int const time_tic_value = exec_get_time_tic_value();
+
+   // Get the integer time in microseconds.
+   int64_t const time = ( time_tic_value == 1000000 )
+                           ? clock_wall_time()
+                           : ( ( clock_wall_time() * 1000000 ) / time_tic_value );
    if ( first_pass ) {
       first_pass = false;
    } else {
@@ -182,8 +190,9 @@ std::string const ElapsedTimeStats::to_string()
       double moe         = ( Z * std_dev ) / sqrt( count ); // milliseconds
       double moe_percent = moe / mean;
 
-      // We have to double escape the % sign so that send_hs() will print the
-      // percent character '%' correctly and not as a c-string formating code.
+      // We have to double escape the % sign so that message_publish() will
+      // print the percent character '%' correctly and not as a c-string
+      // formating code.
       msg << "    sample-count: " << count << '\n'
           << "             min: " << min << " milliseconds\n"
           << "             max: " << max << " milliseconds\n"

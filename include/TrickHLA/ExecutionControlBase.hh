@@ -176,6 +176,12 @@ class ExecutionControlBase : public TrickHLA::SyncPointManagerBase
    {
       return;
    }
+   /*! @brief Is the specified sync-point label contained in the multiphase init
+    *  sync-point list.
+    *  @param sync_point_label Name of the synchronization point label.
+    *  @return True if the multiphase init sync-point list contains the sync-point,
+    *  false otherwise. */
+   bool const contains_multiphase_init_sync_point( std::wstring const &sync_point_label );
    /*! Add initialization synchronization points to regulate startup. */
    virtual void add_initialization_sync_points() = 0;
    /*! Add user defined multiphase initialization synchronization points to
@@ -272,7 +278,7 @@ class ExecutionControlBase : public TrickHLA::SyncPointManagerBase
     *  specific initialization synchronization points in sprecific orders.
     *  Currently, only the 'Simple' and 'DIS' scheme do not.
     *  @return True if ExecutionControl needs to wait on the initialization synchronization points. */
-   virtual bool wait_for_init_sync_point()
+   virtual bool is_wait_for_init_sync_point_supported()
    {
       return ( true );
    }
@@ -287,7 +293,7 @@ class ExecutionControlBase : public TrickHLA::SyncPointManagerBase
     * @param theUserSuppliedTag Users tag.
     * @param theTime            HLA time for the interaction.
     * @param received_as_TSO    True if interaction was received by RTI as TSO. */
-   virtual void receive_interaction(
+   virtual bool receive_interaction(
       RTI1516_NAMESPACE::InteractionClassHandle const  &theInteraction,
       RTI1516_NAMESPACE::ParameterHandleValueMap const &theParameterValues,
       RTI1516_USERDATA const                           &theUserSuppliedTag,
@@ -299,6 +305,9 @@ class ExecutionControlBase : public TrickHLA::SyncPointManagerBase
    /*! @brief Process a new mode interaction.
     *  @return True if new mode interaction is successfully processed. */
    virtual bool process_mode_interaction() = 0;
+   /*! @brief Get a comma separated list of interaction FOM names used.
+    *  @return Comma separated list of interaction FOM names used. */
+   virtual std::string get_interaction_FOM_names() = 0;
    /*! @brief Sets the next ExecutionControl run mode.
     *  @param exec_control Next ExecutionControl run mode. */
    virtual void set_next_execution_control_mode( ExecutionControlEnum exec_control ) = 0;
@@ -635,7 +644,7 @@ class ExecutionControlBase : public TrickHLA::SyncPointManagerBase
     *  @return The value of the least common time step. */
    virtual bool const is_enabled_least_common_time_step()
    {
-      return this->enable_least_commong_time_step;
+      return this->enable_least_common_time_step;
    }
 
    /*! @brief Set the time-padding used to offset the go to run time.
@@ -708,7 +717,7 @@ class ExecutionControlBase : public TrickHLA::SyncPointManagerBase
   protected:
    double time_padding; ///< @trick_units{s} Time in seconds to add to the go-to-run time.
 
-   bool enable_least_commong_time_step; /**< @trick_units{--} Enable the use of LCTS. */
+   bool enable_least_common_time_step; /**< @trick_units{--} Enable the use of LCTS. */
 
    double least_common_time_step_seconds; /**< @trick_units{--} The LCTS in seconds. */
 
@@ -729,7 +738,6 @@ class ExecutionControlBase : public TrickHLA::SyncPointManagerBase
       Since this is an abstract class, the actual instance will be a concrete
       derived class instance (e.g. SRFOM:ExecutionControl). */
 
-  protected:
    bool                 mode_transition_requested;        ///< @trick_units{--} Flag to indicate a mode transition has been requested.
    ExecutionControlEnum requested_execution_control_mode; ///< @trick_units{--} The latest mode transition requested.
    ExecutionControlEnum current_execution_control_mode;   ///< @trick_units{--} Current SRFOM federate current execution mode.

@@ -36,6 +36,7 @@ NASA, Johnson Space Center\n
 @revs_begin
 @rev_entry{Edwin Z. Crues, NASA ER7, TrickHLA, January 2019, --, Initial implementation.}
 @rev_entry{Edwin Z. Crues, NASA ER7, TrickHLA, March 2019, --, Version 3 rewrite.}
+@rev_entry{Dan Dexter, NASA ER6, TrickHLA, March 2025, --, Made into base class.}
 @revs_end
 
 */
@@ -44,7 +45,6 @@ NASA, Johnson Space Center\n
 #define TRICKHLA_CTE_TIMELINE_BASE_HH
 
 // System include files.
-#include <time.h>
 
 // Trick include files.
 #include "trick/Clock.hh"
@@ -71,8 +71,9 @@ class CTETimelineBase : public Trick::Clock, public Timeline
    //-----------------------------------------------------------------
    // Constructors / destructors
    //-----------------------------------------------------------------
-   /*! @brief Default constructor for the TrickHLA CTETimelineBase class. */
-   CTETimelineBase();
+   /*! @brief Constructor for the TrickHLA CTETimelineBase class. */
+   CTETimelineBase( unsigned long long const clock_tics_per_sec,
+                    std::string const       &clock_name );
    /*! @brief Destructor for the TrickHLA CTETimelineBase class. */
    virtual ~CTETimelineBase();
 
@@ -80,39 +81,35 @@ class CTETimelineBase : public Trick::Clock, public Timeline
    // These virtual function must be defined by a full class.
    //-----------------------------------------------------------------
    // Virtual TrickHLATimeline functions.
+
+   /*! Get the time resolution which is the smallest nonzero
+    *  time for the given timeline.
+    *  @return Returns the time resolution in seconds. */
+   virtual double const get_min_resolution() = 0;
+
+   /*! @brief Update the clock tics per second resolution of this clock
+    *  to match the Trick executive resolution. */
+   virtual void set_clock_tics_per_sec( int const tics_per_sec ) = 0;
+
    /*! @brief Get the current CTE time.
     *  @return Current time of day in seconds. */
-   virtual double const get_time();
-
-   /*! Get the minimum time resolution which is the smallest nonzero
-    *  time for the given timeline.
-    *  @return Returns the minimum time resolution in seconds. */
-   virtual double const get_min_resolution();
+   virtual double const get_time() = 0;
 
    /*! @brief Initialize the Trick::Clock functions. */
    virtual int clock_init();
 
    /*! @brief Get the wall clock time.
     *  @return The current real time as a count of microseconds. */
-   virtual long long wall_clock_time();
+   virtual long long wall_clock_time() = 0;
 
    /*! @brief Stop the CTE clock.
     *  @return Default implementation always returns 0. */
-   virtual int clock_stop();
-
-   /*! @brief Sets the clock ID (system clock type). */
-   virtual void set_clock_ID( clockid_t const id );
-
-   /*! @brief Gets the current clock ID (system clock type).
-    *  @return The system clock type in use. */
-   virtual clockid_t const get_clock_ID();
-
-  protected:
-   clockid_t clk_id; /**<  @trick_io{**}
-      System clock type used. The default clock ID is <i>CLOCK_REALTIME</i>. */
+   virtual int clock_stop() = 0;
 
   private:
    // Do not allow the copy constructor or assignment operator.
+   /*! @brief Default constructor for CTETimelineBase class. */
+   CTETimelineBase();
    /*! @brief Copy constructor for CTETimelineBase class.
     *  @details This constructor is private to prevent inadvertent copies. */
    CTETimelineBase( CTETimelineBase const &rhs );

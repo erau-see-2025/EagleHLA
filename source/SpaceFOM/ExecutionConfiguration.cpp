@@ -87,8 +87,8 @@ NASA, Johnson Space Center\n
 #include RTI1516_HEADER
 #pragma GCC diagnostic pop
 
-using namespace std;
 using namespace RTI1516_NAMESPACE;
+using namespace std;
 using namespace TrickHLA;
 using namespace SpaceFOM;
 
@@ -108,7 +108,8 @@ extern ATTRIBUTES attrSpaceFOM__ExecutionConfiguration[];
  * @job_class{initialization}
  */
 ExecutionConfiguration::ExecutionConfiguration()
-   : root_frame_name( NULL ),
+   : TrickHLA::ExecutionConfigurationBase(),
+     root_frame_name( NULL ),
      scenario_time_epoch( -std::numeric_limits< double >::max() ),
      next_mode_scenario_time( -std::numeric_limits< double >::max() ),
      next_mode_cte_time( -std::numeric_limits< double >::max() ),
@@ -124,7 +125,7 @@ ExecutionConfiguration::ExecutionConfiguration()
  */
 ExecutionConfiguration::ExecutionConfiguration(
    char const *s_define_name )
-   : ExecutionConfigurationBase( s_define_name ),
+   : TrickHLA::ExecutionConfigurationBase( s_define_name ),
      root_frame_name( NULL ),
      scenario_time_epoch( -std::numeric_limits< double >::max() ),
      next_mode_scenario_time( -std::numeric_limits< double >::max() ),
@@ -146,8 +147,8 @@ ExecutionConfiguration::~ExecutionConfiguration() // RETURN: -- None.
    // Free the allocated root reference frame name.
    if ( this->root_frame_name != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->root_frame_name ) ) ) {
-         send_hs( stderr, "SpaceFOM::ExecutionConfiguration::~ExecutionConfiguration():%d WARNING failed to delete Trick Memory for 'this->root_frame_name'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::ExecutionConfiguration::~ExecutionConfiguration():%d WARNING failed to delete Trick Memory for 'this->root_frame_name'\n",
+                          __LINE__ );
       }
       this->root_frame_name = NULL;
    }
@@ -250,8 +251,8 @@ void ExecutionConfiguration::configure()
    // make sure it is ExCO regardless of what the user set it to be.
    if ( name != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( name ) ) ) {
-         send_hs( stderr, "SpaceFOM::ExecutionConfiguration::configure():%d WARNING failed to delete Trick Memory for 'name'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::ExecutionConfiguration::configure():%d WARNING failed to delete Trick Memory for 'name'\n",
+                          __LINE__ );
       }
       name = NULL;
    }
@@ -291,15 +292,18 @@ void ExecutionConfiguration::pack()
           << "\t root_frame_name:         '" << ( root_frame_name != NULL ? root_frame_name : "" ) << "'\n"
           << "\t scenario_time_epoch:     " << setprecision( 18 ) << scenario_time_epoch << '\n'
           << "\t next_mode_scenario_time: " << setprecision( 18 ) << next_mode_scenario_time << '\n'
-          << "\t next_mode_cte_time:      " << setprecision( 18 ) << next_mode_cte_time << '\n'
-          << "\t current_execution_mode:  " << execution_mode_enum_to_string( execution_mode_int16_to_enum( current_execution_mode ) ) << '\n'
+          << "\t next_mode_cte_time:      " << setprecision( 18 ) << next_mode_cte_time << '\n';
+      if ( execution_control->does_cte_timeline_exist() ) {
+         msg << "\t current-cte-time:        " << setprecision( 18 ) << execution_control->cte_timeline->get_time() << '\n';
+      }
+      msg << "\t current_execution_mode:  " << execution_mode_enum_to_string( execution_mode_int16_to_enum( current_execution_mode ) ) << '\n'
           << "\t next_execution_mode:     " << execution_mode_enum_to_string( execution_mode_int16_to_enum( next_execution_mode ) ) << '\n'
-          << "\t least_common_time_step:  " << least_common_time_step << " " << Int64BaseTime::get_units() << '\n';
+          << "\t least_common_time_step:  " << least_common_time_step << " (units:" << Int64BaseTime::get_units() << ")\n";
       if ( this->next_execution_mode == EXECUTION_MODE_FREEZE ) {
          msg << "\t simulation_freeze_time:  " << execution_control->get_simulation_freeze_time() << " seconds\n";
       }
       msg << "=============================================================\n";
-      send_hs( stdout, msg.str().c_str() );
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 
    int64_t fed_lookahead = ( get_federate() != NULL ) ? get_federate()->get_lookahead().get_base_time() : 0;
@@ -311,7 +315,7 @@ void ExecutionConfiguration::pack()
              << " ERROR: ExCO least_common_time_step (" << least_common_time_step
              << " " << Int64BaseTime::get_units()
              << ") is not greater than or equal to this federates lookahead time ("
-             << fed_lookahead << " " << Int64BaseTime::get_units()
+             << fed_lookahead << " units:" << Int64BaseTime::get_units()
              << ")!\n";
       DebugHandler::terminate_with_message( errmsg.str() );
    }
@@ -325,9 +329,9 @@ void ExecutionConfiguration::pack()
          ostringstream errmsg;
          errmsg << "SpaceFOM::ExecutionConfiguration::pack():" << __LINE__
                 << " ERROR: ExCO least_common_time_step (" << least_common_time_step
-                << " " << Int64BaseTime::get_units()
+                << " units:" << Int64BaseTime::get_units()
                 << ") is not an integer multiple of the federate lookahead time ("
-                << fed_lookahead << " " << Int64BaseTime::get_units()
+                << fed_lookahead << " units:" << Int64BaseTime::get_units()
                 << ")!\n";
          DebugHandler::terminate_with_message( errmsg.str() );
       }
@@ -357,12 +361,15 @@ void ExecutionConfiguration::unpack()
           << "\t root_frame_name:        '" << ( root_frame_name != NULL ? root_frame_name : "" ) << "'\n"
           << "\t scenario_time_epoch:    " << setprecision( 18 ) << scenario_time_epoch << '\n'
           << "\t next_mode_scenario_time:" << setprecision( 18 ) << next_mode_scenario_time << '\n'
-          << "\t next_mode_cte_time:     " << setprecision( 18 ) << next_mode_cte_time << '\n'
-          << "\t current_execution_mode: " << execution_mode_enum_to_string( execution_mode_int16_to_enum( current_execution_mode ) ) << '\n'
+          << "\t next_mode_cte_time:     " << setprecision( 18 ) << next_mode_cte_time << '\n';
+      if ( execution_control->does_cte_timeline_exist() ) {
+         msg << "\t current-cte-time:       " << setprecision( 18 ) << execution_control->cte_timeline->get_time() << '\n';
+      }
+      msg << "\t current_execution_mode: " << execution_mode_enum_to_string( execution_mode_int16_to_enum( current_execution_mode ) ) << '\n'
           << "\t next_execution_mode:    " << execution_mode_enum_to_string( execution_mode_int16_to_enum( next_execution_mode ) ) << '\n'
-          << "\t least_common_time_step: " << least_common_time_step << " " << Int64BaseTime::get_units() << '\n'
+          << "\t least_common_time_step: " << least_common_time_step << " (units:" << Int64BaseTime::get_units() << ")\n"
           << "=============================================================\n";
-      send_hs( stdout, msg.str().c_str() );
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 
    // Verify the time constraint relationships between the Trick real-time
@@ -386,8 +393,8 @@ void ExecutionConfiguration::set_root_frame_name(
    // Free the Trick memory if it's already allocated.
    if ( this->root_frame_name != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->root_frame_name ) ) ) {
-         send_hs( stderr, "SpaceFOM::ExecutionConfiguration::set_root_frame_name():%d WARNING failed to delete Trick Memory for 'this->root_frame_name'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::ExecutionConfiguration::set_root_frame_name():%d WARNING failed to delete Trick Memory for 'this->root_frame_name'\n",
+                          __LINE__ );
       }
       this->root_frame_name = NULL;
    }
@@ -403,7 +410,7 @@ void ExecutionConfiguration::set_scenario_time_epoch(
    double scenario_time )
 {
    // WARNING: Only the Master federate should ever set this.
-   if ( this->execution_control->is_master() ) {
+   if ( execution_control->is_master() ) {
       this->scenario_time_epoch = scenario_time;
    }
 }
@@ -416,7 +423,7 @@ void ExecutionConfiguration::set_next_mode_scenario_time(
 {
    // TODO: Need more checking here.
    // WARNING: Only the Master federate should ever set this.
-   if ( this->execution_control->is_master() ) {
+   if ( execution_control->is_master() ) {
       this->next_mode_scenario_time = next_mode_time;
    }
 }
@@ -429,7 +436,7 @@ void ExecutionConfiguration::set_next_mode_cte_time(
 {
    // TODO: Need more checking here.
    // WARNING: Only the Master federate should ever set this.
-   if ( this->execution_control->is_master() ) {
+   if ( execution_control->is_master() ) {
       this->next_mode_cte_time = cte_time;
    }
 }
@@ -441,7 +448,7 @@ void ExecutionConfiguration::set_current_execution_mode(
    short mode )
 {
    // WARNING: Only the Master federate should ever set this.
-   if ( this->execution_control->is_master() ) {
+   if ( execution_control->is_master() ) {
       this->current_execution_mode = mode;
    }
 }
@@ -463,7 +470,7 @@ void ExecutionConfiguration::set_next_execution_mode(
    short mode )
 {
    // WARNING: Only the Master federate should ever set this.
-   if ( this->execution_control->is_master() ) {
+   if ( execution_control->is_master() ) {
       this->next_execution_mode = mode;
    }
 }
@@ -499,8 +506,7 @@ void ExecutionConfiguration::setup_ref_attributes(
 {
    ostringstream errormsg;
    errormsg << "SpaceFOM::ExecutionConfiguration::setup_ref_attributes():" << __LINE__
-            << " ERROR: This routine does NOT work and should not be called!"
-            << '\n';
+            << " ERROR: This routine does NOT work and should not be called!\n";
    DebugHandler::terminate_with_message( errormsg.str() );
 
    //
@@ -515,7 +521,7 @@ void ExecutionConfiguration::setup_ref_attributes(
    this->FOM_name      = trick_MM->mm_strdup( "SpaceFOM::ExecutionConfiguration" );
 
    // Create the ExCO instance only if the SpaceFOM Master federate.
-   if ( this->execution_control->is_master() ) {
+   if ( execution_control->is_master() ) {
       this->create_HLA_instance = true;
    } else {
       this->create_HLA_instance = false;
@@ -548,8 +554,7 @@ void ExecutionConfiguration::setup_ref_attributes(
    if ( this->attributes == NULL ) {
       ostringstream errmsg;
       errmsg << "SpaceFOM::ExecutionConfiguration::setup_ref_attributes():" << __LINE__
-             << " FAILED to allocate enough memory for the attributes of the ExCO!"
-             << '\n';
+             << " FAILED to allocate enough memory for the attributes of the ExCO!\n";
       DebugHandler::terminate_with_message( errmsg.str() );
       return;
    }
@@ -559,7 +564,7 @@ void ExecutionConfiguration::setup_ref_attributes(
    //
    // Setup the "root_frame_name" attribute.
    this->attributes[0].FOM_name = trick_MM->mm_strdup( "root_frame_name" );
-   if ( this->execution_control->is_master() ) {
+   if ( execution_control->is_master() ) {
       this->attributes[0].publish       = true;
       this->attributes[0].subscribe     = false;
       this->attributes[0].locally_owned = true;
@@ -635,17 +640,17 @@ void ExecutionConfiguration::setup_ref_attributes(
    // in-line, and not via the Trick input.py file, use the alternate version of
    // the initialize routine which does not resolve the fully-qualified Trick
    // name to access the ATTRIBUTES if the trick variable...
-   // this->attributes[0].initialize( this->FOM_name,
-   //                                &(this->root_frame_name),
-   //                                (ATTRIBUTES *) exco_attr );
+   // attributes[0].initialize( this->FOM_name,
+   //                           &(this->root_frame_name),
+   //                           (ATTRIBUTES *) exco_attr );
 
    if ( DebugHandler::show( DEBUG_LEVEL_3_TRACE, DEBUG_SOURCE_EXECUTION_CONFIG ) ) {
       ostringstream msg;
       msg << "SpaceFOM::ExecutionConfiguration::setup_interaction_ref_attributes():" << __LINE__
-          << " FOM-Parameter:'" << this->attributes[0].get_FOM_name() << "'"
+          << " FOM-Parameter:'" << attributes[0].get_FOM_name() << "'"
           << " NOTE: This is an auto-generated parameter so there is no"
           << " associated 'Trick-Name'.\n";
-      send_hs( stdout, msg.str().c_str() );
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 
    if ( DebugHandler::show( DEBUG_LEVEL_9_TRACE, DEBUG_SOURCE_EXECUTION_CONFIG ) ) {
@@ -655,14 +660,14 @@ void ExecutionConfiguration::setup_ref_attributes(
           << "--------------- Trick REF-Attributes ---------------"
           << '\n'
           << " Object FOM name:'" << this->FOM_name << "'\n";
-      send_hs( stdout, msg.str().c_str() );
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 
    free( static_cast< void * >( exco_ref2 ) );
    exco_ref2 = NULL;
 }
 
-void ExecutionConfiguration::print_execution_configuration()
+void ExecutionConfiguration::print_execution_configuration() const
 {
    if ( DebugHandler::show( DEBUG_LEVEL_1_TRACE, DEBUG_SOURCE_EXECUTION_CONFIG ) ) {
       ostringstream msg;
@@ -673,12 +678,15 @@ void ExecutionConfiguration::print_execution_configuration()
           << "\t root_frame_name:         '" << ( root_frame_name != NULL ? root_frame_name : "" ) << "'\n"
           << "\t scenario_time_epoch:     " << setprecision( 18 ) << scenario_time_epoch << '\n'
           << "\t next_mode_scenario_time: " << setprecision( 18 ) << next_mode_scenario_time << '\n'
-          << "\t next_mode_cte_time:      " << setprecision( 18 ) << next_mode_cte_time << '\n'
-          << "\t current_execution_mode:  " << SpaceFOM::execution_mode_enum_to_string( SpaceFOM::execution_mode_int16_to_enum( current_execution_mode ) ) << '\n'
+          << "\t next_mode_cte_time:      " << setprecision( 18 ) << next_mode_cte_time << '\n';
+      if ( execution_control->does_cte_timeline_exist() ) {
+         msg << "\t current-cte-time:        " << setprecision( 18 ) << execution_control->cte_timeline->get_time() << '\n';
+      }
+      msg << "\t current_execution_mode:  " << SpaceFOM::execution_mode_enum_to_string( SpaceFOM::execution_mode_int16_to_enum( current_execution_mode ) ) << '\n'
           << "\t next_execution_mode:     " << SpaceFOM::execution_mode_enum_to_string( SpaceFOM::execution_mode_int16_to_enum( next_execution_mode ) ) << '\n'
-          << "\t least_common_time_step:  " << least_common_time_step << " " << Int64BaseTime::get_units() << '\n'
+          << "\t least_common_time_step:  " << least_common_time_step << " (units:" << Int64BaseTime::get_units() << ")\n"
           << "=============================================================\n";
-      send_hs( stdout, msg.str().c_str() );
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 }
 
@@ -687,13 +695,13 @@ bool ExecutionConfiguration::wait_for_update() // RETURN: -- None.
    Federate *federate = get_federate();
 
    // We can only receive the exec-configuration if we are not the master.
-   if ( this->execution_control->is_master() ) {
+   if ( execution_control->is_master() ) {
       return false;
    }
 
    if ( DebugHandler::show( DEBUG_LEVEL_2_TRACE, DEBUG_SOURCE_EXECUTION_CONFIG ) ) {
-      send_hs( stdout, "SpaceFOM::ExecutionConfiguration::wait_for_update():%d Waiting...\n",
-               __LINE__ );
+      message_publish( MSG_NORMAL, "SpaceFOM::ExecutionConfiguration::wait_for_update():%d Waiting...\n",
+                       __LINE__ );
    }
 
    // Make sure we have at least one piece of exec-config data we can receive.
@@ -725,23 +733,22 @@ bool ExecutionConfiguration::wait_for_update() // RETURN: -- None.
                          << " This means we are either not connected to the"
                          << " RTI or we are no longer joined to the federation"
                          << " execution because someone forced our resignation at"
-                         << " the Central RTI Component (CRC) level!"
-                         << '\n';
+                         << " the Central RTI Component (CRC) level!\n";
                   DebugHandler::terminate_with_message( errmsg.str() );
                }
             }
 
             if ( print_timer.timeout( wallclock_time ) ) {
                print_timer.reset();
-               send_hs( stdout, "SpaceFOM::ExecutionConfiguration::wait_for_update():%d Waiting...\n",
-                        __LINE__ );
+               message_publish( MSG_NORMAL, "SpaceFOM::ExecutionConfiguration::wait_for_update():%d Waiting...\n",
+                                __LINE__ );
             }
          }
       }
 
       if ( DebugHandler::show( DEBUG_LEVEL_2_TRACE, DEBUG_SOURCE_EXECUTION_CONFIG ) ) {
-         send_hs( stdout, "SpaceFOM::ExecutionConfiguration::wait_for_update():%d Received data.\n",
-                  __LINE__ );
+         message_publish( MSG_NORMAL, "SpaceFOM::ExecutionConfiguration::wait_for_update():%d Received data.\n",
+                          __LINE__ );
       }
 
       // Receive the exec-config data from the master federate.
@@ -754,8 +761,7 @@ bool ExecutionConfiguration::wait_for_update() // RETURN: -- None.
              << " is not configured to receive at least one object attribute."
              << " Make sure at least one 'exec_config' attribute has"
              << " 'subscribe = true' set. Please check your input or modified-data"
-             << " files to make sure the 'subscribe' value is correctly specified."
-             << '\n';
+             << " files to make sure the 'subscribe' value is correctly specified.\n";
       DebugHandler::terminate_with_message( errmsg.str() );
    }
 

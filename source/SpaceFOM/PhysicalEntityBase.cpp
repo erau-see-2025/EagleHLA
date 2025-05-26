@@ -113,32 +113,31 @@ PhysicalEntityBase::PhysicalEntityBase() // RETURN: -- None.
  */
 PhysicalEntityBase::~PhysicalEntityBase() // RETURN: -- None.
 {
-
    if ( this->pe_packing_data.name != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->pe_packing_data.name ) ) ) {
-         send_hs( stderr, "SpaceFOM::PhysicalEntityBase::~PhysicalEntityBase():%d WARNING deleting Trick Memory for 'this->name'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::PhysicalEntityBase::~PhysicalEntityBase():%d WARNING deleting Trick Memory for 'this->name'\n",
+                          __LINE__ );
       }
       this->pe_packing_data.name = NULL;
    }
    if ( this->pe_packing_data.type != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->pe_packing_data.type ) ) ) {
-         send_hs( stderr, "SpaceFOM::PhysicalEntityBase::~PhysicalEntityBase():%d WARNING deleting Trick Memory for 'this->type'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::PhysicalEntityBase::~PhysicalEntityBase():%d WARNING deleting Trick Memory for 'this->type'\n",
+                          __LINE__ );
       }
       this->pe_packing_data.type = NULL;
    }
    if ( this->pe_packing_data.status != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->pe_packing_data.status ) ) ) {
-         send_hs( stderr, "SpaceFOM::PhysicalEntityBase::~PhysicalEntityBase():%d WARNING deleting Trick Memory for 'this->status'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::PhysicalEntityBase::~PhysicalEntityBase():%d WARNING deleting Trick Memory for 'this->status'\n",
+                          __LINE__ );
       }
       this->pe_packing_data.status = NULL;
    }
    if ( this->pe_packing_data.parent_frame != (char *)NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->pe_packing_data.parent_frame ) ) ) {
-         send_hs( stderr, "SpaceFOM::PhysicalEntityBase::~PhysicalEntityBase():%d WARNING deleting Trick Memory for 'this->parent_frame'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::PhysicalEntityBase::~PhysicalEntityBase():%d WARNING deleting Trick Memory for 'this->parent_frame'\n",
+                          __LINE__ );
       }
       this->pe_packing_data.parent_frame = NULL;
    }
@@ -285,14 +284,13 @@ void PhysicalEntityBase::base_config(
  */
 void PhysicalEntityBase::configure()
 {
-
    // Must have federation instance name.
    if ( pe_packing_data.name == NULL ) {
       ostringstream errmsg;
       errmsg << "SpaceFOM::PhysicalEntityBase::initialize():" << __LINE__
              << " WARNING: Unexpected NULL entity name!"
              << " Setting frame name to empty string.\n";
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
       this->pe_packing_data.name = trick_MM->mm_strdup( "" );
    }
 
@@ -302,7 +300,7 @@ void PhysicalEntityBase::configure()
       errmsg << "SpaceFOM::PhysicalEntityBase::initialize():" << __LINE__
              << " WARNING: Unexpected NULL entity type!"
              << " Setting type to empty string.\n";
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
       this->pe_packing_data.type = trick_MM->mm_strdup( "" );
    }
 
@@ -312,7 +310,7 @@ void PhysicalEntityBase::configure()
       errmsg << "SpaceFOM::PhysicalEntityBase::initialize():" << __LINE__
              << " WARNING: Unexpected NULL entity status!"
              << " Setting status to empty string.\n";
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
       this->pe_packing_data.status = trick_MM->mm_strdup( "" );
    }
 
@@ -322,7 +320,7 @@ void PhysicalEntityBase::configure()
       errmsg << "SpaceFOM::PhysicalEntityBase::initialize():" << __LINE__
              << " WARNING: Unexpected NULL entity parent_ref_frame!"
              << " Setting parent_ref_frame to empty string.\n";
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
       this->pe_packing_data.parent_frame = trick_MM->mm_strdup( "" );
    }
 
@@ -335,14 +333,13 @@ void PhysicalEntityBase::configure()
  */
 void PhysicalEntityBase::initialize()
 {
-
    // Must have federation instance name.
    if ( pe_packing_data.name == NULL ) {
       ostringstream errmsg;
       errmsg << "SpaceFOM::PhysicalEntityBase::initialize():" << __LINE__
              << " WARNING: Unexpected NULL entity name!"
              << " Setting frame name to empty string.\n";
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
       this->pe_packing_data.name = trick_MM->mm_strdup( "" );
    }
 
@@ -352,7 +349,7 @@ void PhysicalEntityBase::initialize()
       errmsg << "SpaceFOM::PhysicalEntityBase::initialize():" << __LINE__
              << " WARNING: Unexpected NULL entity type!"
              << " Setting type to empty string.\n";
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
       this->pe_packing_data.type = trick_MM->mm_strdup( "" );
    }
 
@@ -362,7 +359,7 @@ void PhysicalEntityBase::initialize()
       errmsg << "SpaceFOM::PhysicalEntityBase::initialize():" << __LINE__
              << " WARNING: Unexpected NULL entity status!"
              << " Setting status to empty string.\n";
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
       this->pe_packing_data.status = trick_MM->mm_strdup( "" );
    }
 
@@ -372,7 +369,7 @@ void PhysicalEntityBase::initialize()
       errmsg << "SpaceFOM::PhysicalEntityBase::initialize():" << __LINE__
              << " WARNING: Unexpected NULL entity parent_ref_frame!"
              << " Setting parent_ref_frame to empty string.\n";
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
       this->pe_packing_data.parent_frame = trick_MM->mm_strdup( "" );
    }
 
@@ -399,7 +396,7 @@ void PhysicalEntityBase::initialize_callback(
    TrickHLA::Object *obj )
 {
    // We must call the original function so that the callback is initialized.
-   this->TrickHLA::Packing::initialize_callback( obj );
+   TrickHLA::Packing::initialize_callback( obj );
 
    // Get references to all the TrickHLA::Attribute for this object type.
    // We do this here so that we only do the attribute lookup once instead of
@@ -415,7 +412,7 @@ void PhysicalEntityBase::initialize_callback(
    body_frame_attr   = get_attribute_and_validate( "body_wrt_structural" );
 
    // Initialize with the working data in the packing data.
-   this->pack_from_working_data();
+   pack_from_working_data();
 
    return;
 }
@@ -425,13 +422,7 @@ void PhysicalEntityBase::initialize_callback(
  */
 void PhysicalEntityBase::set_name( char const *new_name )
 {
-   if ( this->pe_packing_data.name != NULL ) {
-      if ( trick_MM->delete_var( static_cast< void * >( this->pe_packing_data.name ) ) ) {
-         send_hs( stderr, "SpaceFOM::PhysicalEntityBase::set_name():%d WARNING deleting Trick Memory for 'this->name'\n",
-                  __LINE__ );
-      }
-   }
-   pe_packing_data.name = trick_MM->mm_strdup( new_name );
+   pe_packing_data.set_name( new_name );
    return;
 }
 
@@ -440,13 +431,7 @@ void PhysicalEntityBase::set_name( char const *new_name )
  */
 void PhysicalEntityBase::set_type( char const *new_type )
 {
-   if ( this->pe_packing_data.type != NULL ) {
-      if ( trick_MM->delete_var( static_cast< void * >( this->pe_packing_data.type ) ) ) {
-         send_hs( stderr, "SpaceFOM::PhysicalEntityBase::set_type():%d WARNING deleting Trick Memory for 'this->type'\n",
-                  __LINE__ );
-      }
-   }
-   pe_packing_data.type = trick_MM->mm_strdup( new_type );
+   pe_packing_data.set_type( new_type );
    return;
 }
 
@@ -455,13 +440,7 @@ void PhysicalEntityBase::set_type( char const *new_type )
  */
 void PhysicalEntityBase::set_status( char const *new_status )
 {
-   if ( this->pe_packing_data.status != NULL ) {
-      if ( trick_MM->delete_var( static_cast< void * >( this->pe_packing_data.status ) ) ) {
-         send_hs( stderr, "SpaceFOM::PhysicalEntityBase::set_status():%d WARNING deleting Trick Memory for 'this->status'\n",
-                  __LINE__ );
-      }
-   }
-   this->pe_packing_data.status = trick_MM->mm_strdup( new_status );
+   pe_packing_data.set_status( new_status );
    return;
 }
 
@@ -470,14 +449,7 @@ void PhysicalEntityBase::set_status( char const *new_status )
  */
 void PhysicalEntityBase::set_parent_frame( char const *new_frame )
 {
-   if ( this->pe_packing_data.parent_frame != NULL ) {
-      if ( trick_MM->delete_var( static_cast< void * >( this->pe_packing_data.parent_frame ) ) ) {
-         send_hs( stderr, "SpaceFOM::PhysicalEntityBase::set_parent_frame():%d WARNING deleting Trick Memory for 'this->parent_frame'\n",
-                  __LINE__ );
-      }
-   }
-   pe_packing_data.parent_frame = trick_MM->mm_strdup( new_frame );
-
+   pe_packing_data.set_parent_frame( new_frame );
    return;
 }
 
@@ -488,19 +460,21 @@ void PhysicalEntityBase::pack()
 {
    // Check for initialization.
    if ( !initialized ) {
-      send_hs( stderr, "PhysicalEntityBase::pack():%d WARNING: The initialize() function has not been called!\n",
-               __LINE__ );
+      message_publish( MSG_WARNING, "PhysicalEntityBase::pack():%d WARNING: The initialize() function has not been called!\n",
+                       __LINE__ );
    }
 
    // Check for latency/lag compensation.
    if ( this->object->lag_comp == NULL ) {
-      this->pack_from_working_data();
+      pack_from_working_data();
    }
 
    // Print out debug information if desired.
    if ( debug ) {
-      send_hs( stdout, "PhysicalEntityBase::pack():%d\n", __LINE__ );
-      this->debug_print( cout );
+      ostringstream msg;
+      msg << "PhysicalEntityBase::pack():" << __LINE__ << "\n";
+      debug_print( msg );
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 
    // Encode the data into the buffer.
@@ -518,8 +492,8 @@ void PhysicalEntityBase::unpack()
    // double dt; // Local vs. remote time difference.
 
    if ( !initialized ) {
-      send_hs( stderr, "PhysicalEntityBase::unpack():%d WARNING: The initialize() function has not been called!\n",
-               __LINE__ );
+      message_publish( MSG_WARNING, "PhysicalEntityBase::unpack():%d WARNING: The initialize() function has not been called!\n",
+                       __LINE__ );
    }
 
    // Use the HLA encoder helpers to decode the PhysicalEntity fixed record.
@@ -527,12 +501,14 @@ void PhysicalEntityBase::unpack()
    quat_encoder.decode();
 
    // Transfer the packing data into the working data.
-   this->unpack_into_working_data();
+   unpack_into_working_data();
 
    // Print out debug information if desired.
    if ( debug ) {
-      send_hs( stdout, "PhysicalEntityBase::unpack():%d\n", __LINE__ );
-      this->debug_print( cout );
+      ostringstream msg;
+      msg << "PhysicalEntityBase::unpack():" << __LINE__ << "\n";
+      debug_print( msg );
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 
    return;
@@ -541,7 +517,7 @@ void PhysicalEntityBase::unpack()
 /*!
  * @job_class{scheduled}
  */
-void PhysicalEntityBase::debug_print( std::ostream &stream )
+void PhysicalEntityBase::debug_print( std::ostream &stream ) const
 {
    double euler_angles[3];
    pe_packing_data.state.att.get_Euler_deg( Roll_Pitch_Yaw, euler_angles );
@@ -553,46 +529,9 @@ void PhysicalEntityBase::debug_print( std::ostream &stream )
           << "\tname:   '" << ( pe_packing_data.name != NULL ? pe_packing_data.name : "" ) << "'\n"
           << "\ttype:   '" << ( pe_packing_data.type != NULL ? pe_packing_data.type : "" ) << "'\n"
           << "\tstatus: '" << ( pe_packing_data.status != NULL ? pe_packing_data.status : "" ) << "'\n"
-          << "\tparent: '" << ( pe_packing_data.parent_frame != NULL ? pe_packing_data.parent_frame : "" ) << "'\n"
-          << "\ttime: " << pe_packing_data.state.time << '\n';
-   stream << "\tposition: "
-          << "\t\t" << pe_packing_data.state.pos[0] << ", "
-          << "\t\t" << pe_packing_data.state.pos[1] << ", "
-          << "\t\t" << pe_packing_data.state.pos[2] << '\n';
-   stream << "\tvelocity: "
-          << "\t\t" << pe_packing_data.state.vel[0] << ", "
-          << "\t\t" << pe_packing_data.state.vel[1] << ", "
-          << "\t\t" << pe_packing_data.state.vel[2] << '\n';
-   stream << "\tacceleration: "
-          << "\t\t" << pe_packing_data.accel[0] << ", "
-          << "\t\t" << pe_packing_data.accel[1] << ", "
-          << "\t\t" << pe_packing_data.accel[2] << '\n';
-   stream << "\tattitude (s,v): "
-          << "\t\t" << pe_packing_data.state.att.scalar << "; "
-          << "\t\t" << pe_packing_data.state.att.vector[0] << ", "
-          << "\t\t" << pe_packing_data.state.att.vector[1] << ", "
-          << "\t\t" << pe_packing_data.state.att.vector[2] << '\n';
-   stream << "\tattitude (RPY): "
-          << "\t\t" << euler_angles[0] << ", "
-          << "\t\t" << euler_angles[1] << ", "
-          << "\t\t" << euler_angles[2] << '\n';
-   stream << "\tangular velocity: "
-          << "\t\t" << pe_packing_data.state.ang_vel[0] << ", "
-          << "\t\t" << pe_packing_data.state.ang_vel[1] << ", "
-          << "\t\t" << pe_packing_data.state.ang_vel[2] << '\n';
-   stream << "\tangular acceleration: "
-          << "\t\t" << pe_packing_data.ang_accel[0] << ", "
-          << "\t\t" << pe_packing_data.ang_accel[1] << ", "
-          << "\t\t" << pe_packing_data.ang_accel[2] << '\n';
-   stream << "\tcenter of mass (cm): "
-          << "\t\t" << pe_packing_data.cm[0] << ", "
-          << "\t\t" << pe_packing_data.cm[1] << ", "
-          << "\t\t" << pe_packing_data.cm[2] << '\n';
-   stream << "\tbody wrt. struct (s;v): "
-          << "\t\t" << pe_packing_data.body_wrt_struct.scalar << "; "
-          << "\t\t" << pe_packing_data.body_wrt_struct.vector[0] << ", "
-          << "\t\t" << pe_packing_data.body_wrt_struct.vector[1] << ", "
-          << "\t\t" << pe_packing_data.body_wrt_struct.vector[2] << '\n';
+          << "\tparent: '" << ( pe_packing_data.parent_frame != NULL ? pe_packing_data.parent_frame : "" ) << "'\n";
+
+   pe_packing_data.print_data();
 
    return;
 }

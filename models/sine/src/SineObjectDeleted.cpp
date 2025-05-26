@@ -33,7 +33,7 @@ NASA, Johnson Space Center\n
 
 // Trick include files.
 #include "trick/exec_proto.h"
-#include "trick/message_proto.h" // for send_hs
+#include "trick/message_proto.h"
 
 // TrickHLA include files.
 #include "TrickHLA/Object.hh"
@@ -65,6 +65,6 @@ void SineObjectDeleted::deleted()
 {
    std::ostringstream msg;
    msg << "SineObjectDeleted::deleted():" << __LINE__
-       << " Object '" << this->object->get_name() << "' deleted from the federation.";
-   send_hs( stdout, msg.str().c_str() );
+       << " Object '" << object->get_name() << "' deleted from the federation.";
+   message_publish( MSG_NORMAL, msg.str().c_str() );
 }

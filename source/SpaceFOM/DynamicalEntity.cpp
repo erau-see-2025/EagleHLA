@@ -97,7 +97,6 @@ void DynamicalEntity::configure(
    PhysicalEntityData  *physical_data_ptr,
    DynamicalEntityData *dynamics_data_ptr )
 {
-
    // First call the base class pre_initialize function.
    DynamicalEntityBase::configure();
 
@@ -105,7 +104,8 @@ void DynamicalEntity::configure(
    if ( dynamics_data_ptr == NULL ) {
       ostringstream errmsg;
       errmsg << "SpaceFOM::DynamicalEntity::initialize():" << __LINE__
-             << " ERROR: Unexpected NULL DynamicalEntityData: " << pe_packing_data.name << '\n';
+             << " ERROR: Unexpected NULL DynamicalEntityData: "
+             << pe_packing_data.name << '\n';
       // Print message and terminate.
       TrickHLA::DebugHandler::terminate_with_message( errmsg.str() );
    }
@@ -127,7 +127,8 @@ void DynamicalEntity::initialize()
    if ( dynamical_data == NULL ) {
       ostringstream errmsg;
       errmsg << "SpaceFOM::DynamicalEntity::initialize():" << __LINE__
-             << " ERROR: Unexpected NULL DynamicalEntityData: " << pe_packing_data.name << '\n';
+             << " ERROR: Unexpected NULL DynamicalEntityData: "
+             << pe_packing_data.name << '\n';
       // Print message and terminate.
       TrickHLA::DebugHandler::terminate_with_message( errmsg.str() );
    }

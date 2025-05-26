@@ -337,18 +337,19 @@ void DynamicalEntityBase::initialize_callback(
  */
 void DynamicalEntityBase::pack()
 {
-
    // Check for initialization.
    if ( !initialized ) {
       ostringstream errmsg;
       errmsg << "DynamicalEntityBase::pack() ERROR: The initialize() function has not"
              << " been called!\n";
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
    }
 
    // Print out debug information if desired.
    if ( debug ) {
-      cout << "DynamicalEntityBase::pack():" << __LINE__ << '\n';
+      ostringstream msg;
+      msg << "DynamicalEntityBase::pack():" << __LINE__ << '\n';
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 
    // Call the PhysicalEntityBase pack routine.
@@ -362,18 +363,19 @@ void DynamicalEntityBase::pack()
  */
 void DynamicalEntityBase::unpack()
 {
-
    if ( !initialized ) {
       ostringstream errmsg;
       errmsg << "DynamicalEntityBase::unpack():" << __LINE__
              << " ERROR: The initialize() function has not been called!\n";
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
    }
 
    // Print out debug information if desired.
    if ( debug ) {
-      cout << "DynamicalEntity: lag comp type: " << this->object->lag_comp_type << '\n';
-      cout << "DynamicalEntityBase::unpack():" << __LINE__ << '\n';
+      ostringstream msg;
+      msg << "DynamicalEntityBase::unpack():" << __LINE__ << '\n'
+          << "DynamicalEntity: lag comp type: " << this->object->lag_comp_type << '\n';
+      message_publish( MSG_WARNING, msg.str().c_str() );
    }
 
    // Call the PhysicalEntityBase unpack routine.
@@ -386,44 +388,14 @@ void DynamicalEntityBase::unpack()
  * @job_class{scheduled}
  */
 void DynamicalEntityBase::debug_print(
-   std::ostream &stream )
+   std::ostream &stream ) const
 {
-
    // Call the PhysicalEntity print routine first.
    PhysicalEntityBase::debug_print( stream );
 
+   de_packing_data.print_data();
+
    stream.precision( 15 );
-   stream << "\tObject-Name: '" << object->get_name() << "'\n"
-          << "\tmass: " << de_packing_data.mass << '\n'
-          << "\tmass_rate: " << de_packing_data.mass_rate << '\n';
-   stream << "\tinertia: \n"
-          << "\t\t" << de_packing_data.inertia[0][0] << ", "
-          << de_packing_data.inertia[0][1] << ", "
-          << de_packing_data.inertia[0][2] << '\n'
-          << "\t\t" << de_packing_data.inertia[1][0] << ", "
-          << de_packing_data.inertia[1][1] << ", "
-          << de_packing_data.inertia[1][2] << '\n'
-          << "\t\t" << de_packing_data.inertia[2][0] << ", "
-          << de_packing_data.inertia[2][1] << ", "
-          << de_packing_data.inertia[2][2] << '\n';
-   stream << "\tinertia rate: \n"
-          << "\t\t" << de_packing_data.inertia_rate[0][0] << ", "
-          << de_packing_data.inertia_rate[0][1] << ", "
-          << de_packing_data.inertia_rate[0][2] << '\n'
-          << "\t\t" << de_packing_data.inertia_rate[1][0] << ", "
-          << de_packing_data.inertia_rate[1][1] << ", "
-          << de_packing_data.inertia_rate[1][2] << '\n'
-          << "\t\t" << de_packing_data.inertia_rate[2][0] << ", "
-          << de_packing_data.inertia_rate[2][1] << ", "
-          << de_packing_data.inertia_rate[2][2] << '\n';
-   stream << "\tforce: "
-          << de_packing_data.force[0] << ", "
-          << de_packing_data.force[1] << ", "
-          << de_packing_data.force[2] << '\n';
-   stream << "\ttorque: "
-          << de_packing_data.torque[0] << ", "
-          << de_packing_data.torque[1] << ", "
-          << de_packing_data.torque[2] << '\n';
 
    return;
 }

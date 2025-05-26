@@ -89,19 +89,6 @@ namespace TrickHLA
 class InteractionItem;
 class ExecutionConfigurationBase;
 
-// FIXME: This needs to be handled in a different way and in the ExecutionControl code.
-// The following enum is used to distinguish between user-defined and built-in
-// interactions. This is needed to distinguish between the interactions defined
-// in the user's model and the interaction(s) built into TrickHLA.
-//
-// Update this enum when adding more built-in interactions into TrickHLA.
-//
-typedef enum {
-   TRICKHLA_MANAGER_USER_DEFINED_INTERACTION   = 0, ///< Interaction must be defined by the user in the input file
-   TRICKHLA_MANAGER_BUILTIN_FREEZE_INTERACTION = 1, ///< Freeze Interaction internal to TrickHLA
-   TRICKHLA_MANAGER_BUILTIN_MTR_INTERACTION    = 2  ///< MTR Interaction internal to TrickHLA
-} ManagerTypeOfInteractionEnum;
-
 class Manager : public CheckpointConversionBase
 {
    // Let the Trick input processor access protected and private data.
@@ -449,21 +436,21 @@ class Manager : public CheckpointConversionBase
     *  @param exec_config Pointer to the associated execution configuration object. */
    void set_execution_configuration( ExecutionConfigurationBase *exec_config )
    {
-      this->execution_control->set_execution_configuration( exec_config );
+      execution_control->set_execution_configuration( exec_config );
    }
 
    /*! @brief Get the execution configuration object.
     *  @return Pointer to the associated execution configuration object. */
    ExecutionConfigurationBase *get_execution_configuration()
    {
-      return this->execution_control->get_execution_configuration();
+      return execution_control->get_execution_configuration();
    }
 
    /*! @brief Test is an execution configuration object is used.
     *  @return True if an execution configuration object is used. */
    bool is_execution_configuration_used()
    {
-      return this->execution_control->is_execution_configuration_used();
+      return execution_control->is_execution_configuration_used();
    }
 
    /*! @brief Check if federate is shutdown function was called.

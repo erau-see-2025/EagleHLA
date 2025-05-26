@@ -86,15 +86,15 @@ RefFrameBase::~RefFrameBase()
 {
    if ( this->packing_data.name != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->packing_data.name ) ) ) {
-         send_hs( stderr, "SpaceFOM::RefFrameBase::~RefFrameBase():%d WARNING failed to delete Trick Memory for 'this->packing_data.name'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::RefFrameBase::~RefFrameBase():%d WARNING failed to delete Trick Memory for 'this->packing_data.name'\n",
+                          __LINE__ );
       }
       this->packing_data.name = NULL;
    }
    if ( this->packing_data.parent_name != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->packing_data.parent_name ) ) ) {
-         send_hs( stderr, "SpaceFOM::RefFrameBase::~RefFrameBase():%d WARNING failed to delete Trick Memory for 'this->packing_data.parent_name'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::RefFrameBase::~RefFrameBase():%d WARNING failed to delete Trick Memory for 'this->packing_data.parent_name'\n",
+                          __LINE__ );
       }
       this->packing_data.parent_name = NULL;
    }
@@ -141,7 +141,7 @@ void RefFrameBase::base_config(
 
    // Set the frame name.
    if ( ref_frame_name != NULL ) {
-      this->set_name( ref_frame_name );
+      set_name( ref_frame_name );
    } else {
       ostringstream errmsg;
       errmsg << "SpaceFOM::RefFrameBase::default_data():" << __LINE__
@@ -160,7 +160,7 @@ void RefFrameBase::base_config(
       this->is_root_node             = true;
    }
    if ( ref_frame_parent != NULL ) {
-      this->set_parent_frame( ref_frame_parent );
+      set_parent_frame( ref_frame_parent );
    }
 
    //---------------------------------------------------------
@@ -220,7 +220,7 @@ void RefFrameBase::configure()
          errmsg << "SpaceFOM::RefFrameBase::configure():" << __LINE__
                 << " WARNING: Unexpected NULL federation instance frame name!"
                 << "  Setting frame name to empty string.\n";
-         send_hs( stderr, errmsg.str().c_str() );
+         message_publish( MSG_WARNING, errmsg.str().c_str() );
       }
       this->packing_data.name = trick_MM->mm_strdup( "" );
    }
@@ -232,7 +232,7 @@ void RefFrameBase::configure()
          errmsg << "SpaceFOM::RefFrameBase::configure():" << __LINE__
                 << " WARNING: Unexpected NULL federation instance parent frame name!"
                 << "  Setting parent frame name to empty string.\n";
-         send_hs( stderr, errmsg.str().c_str() );
+         message_publish( MSG_WARNING, errmsg.str().c_str() );
       }
       this->packing_data.parent_name = trick_MM->mm_strdup( "" );
    }
@@ -292,7 +292,7 @@ void RefFrameBase::initialize()
                 << " Setting parent frame name to empty string."
                 << '\n';
 
-         send_hs( stderr, errmsg.str().c_str() );
+         message_publish( MSG_WARNING, errmsg.str().c_str() );
       }
 
       // Set an empty string.
@@ -334,6 +334,9 @@ void RefFrameBase::initialize()
       TrickHLA::DebugHandler::terminate_with_message( errmsg.str() );
    }
 
+   // Initialize from the initial state of the working data.
+   pack_from_working_data();
+
    // Mark this as initialized.
    TrickHLA::Packing::initialize();
 
@@ -357,7 +360,7 @@ void RefFrameBase::initialize_callback(
    TrickHLA::Object *obj )
 {
    // We must call the original function so that the callback is initialized.
-   this->TrickHLA::Packing::initialize_callback( obj );
+   TrickHLA::Packing::initialize_callback( obj );
 
    // Get references to all the TrickHLA::Attribute for this object type.
    // We do this here so that we only do the attribute lookup once instead of
@@ -385,16 +388,16 @@ void RefFrameBase::set_name( char const *new_name )
 
    if ( this->packing_data.name != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->packing_data.name ) ) ) {
-         send_hs( stderr, "SpaceFOM::RefFrameBase::set_name():%d WARNING failed to delete Trick Memory for 'this->packing_data.name'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::RefFrameBase::set_name():%d WARNING failed to delete Trick Memory for 'this->packing_data.name'\n",
+                          __LINE__ );
       }
    }
    this->packing_data.name = trick_MM->mm_strdup( new_name );
 
    if ( this->name != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->name ) ) ) {
-         send_hs( stderr, "SpaceFOM::RefFrameBase::set_name():%d WARNING failed to delete Trick Memory for 'this->name'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::RefFrameBase::set_name():%d WARNING failed to delete Trick Memory for 'this->name'\n",
+                          __LINE__ );
       }
    }
    this->name = trick_MM->mm_strdup( new_name );
@@ -418,8 +421,8 @@ void RefFrameBase::set_parent_name( char const *name )
    // Set the parent frame name appropriately.
    if ( this->packing_data.parent_name != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->packing_data.parent_name ) ) ) {
-         send_hs( stderr, "SpaceFOM::RefFrameBase::set_parent_name():%d WARNING failed to delete Trick Memory for 'this->parent_name'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::RefFrameBase::set_parent_name():%d WARNING failed to delete Trick Memory for 'this->parent_name'\n",
+                          __LINE__ );
       }
    }
    if ( name != NULL ) {
@@ -457,9 +460,9 @@ void RefFrameBase::set_parent_frame( RefFrameBase *pframe_ptr )
 
    // Set the parent frame name.
    if ( this->parent_frame != NULL ) {
-      this->set_parent_name( this->parent_frame->packing_data.name );
+      set_parent_name( this->parent_frame->packing_data.name );
    } else {
-      this->set_parent_name( NULL );
+      set_parent_name( NULL );
    }
 
    return;
@@ -470,7 +473,6 @@ void RefFrameBase::set_parent_frame( RefFrameBase *pframe_ptr )
  */
 bool RefFrameBase::set_root( bool root_status )
 {
-
    // If setting as root reference frame.
    if ( root_status ) {
 
@@ -489,7 +491,7 @@ bool RefFrameBase::set_root( bool root_status )
          } else {
             // Parent name cannot be NULL but it should be safe to set it empty.
             // Note that this will also set the is_root_node state to true.
-            this->set_parent_name( "" );
+            set_parent_name( "" );
             return ( true );
          }
 
@@ -500,8 +502,8 @@ bool RefFrameBase::set_root( bool root_status )
          return ( false );
       }
 
-   } // If setting is NOT a root reference frame.
-   else {
+   } else {
+      // If setting is NOT a root reference frame.
 
       // Check to make sure predicates are satisfied.
       if ( this->parent_frame != NULL ) {
@@ -520,8 +522,8 @@ bool RefFrameBase::set_root( bool root_status )
             return ( true );
          }
 
-      } // Parent frame is NULL.  Automatic fail.
-      else {
+      } else {
+         // Parent frame is NULL.  Automatic fail.
 
          // Note that we DO NOT change the is_root_node state.
          return ( false );
@@ -540,7 +542,7 @@ void RefFrameBase::publish()
       ostringstream errmsg;
       errmsg << "RefFrameBase::publish():" << __LINE__
              << " WARNING: Ignoring, reference frame already initialized!\n";
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
    } else {
       object->create_HLA_instance         = true;
       object->attributes[0].publish       = true;
@@ -566,7 +568,7 @@ void RefFrameBase::subscribe()
       ostringstream errmsg;
       errmsg << "RefFrameBase::publish():" << __LINE__
              << " WARNING: Ignoring, reference frame already initialized!\n";
-      send_hs( stderr, errmsg.str().c_str() );
+      message_publish( MSG_WARNING, errmsg.str().c_str() );
    } else {
       object->create_HLA_instance         = false;
       object->attributes[0].publish       = false;
@@ -588,26 +590,27 @@ void RefFrameBase::subscribe()
  */
 void RefFrameBase::pack()
 {
-
    // Check for initialization.
    if ( !initialized ) {
       if ( DebugHandler::show( DEBUG_LEVEL_4_TRACE, DEBUG_SOURCE_PACKING ) ) {
          ostringstream errmsg;
          errmsg << "RefFrameBase::pack() Warning: The initialize() function has not"
                 << " been called!\n";
-         send_hs( stderr, errmsg.str().c_str() );
+         message_publish( MSG_WARNING, errmsg.str().c_str() );
       }
    }
 
    // Check for latency/lag compensation.
    if ( this->object->lag_comp == NULL ) {
-      this->pack_from_working_data();
+      pack_from_working_data();
    }
 
    // Print out debug information if desired.
    if ( debug ) {
-      cout << "RefFrameBase::pack():" << __LINE__ << '\n';
-      this->print_data();
+      ostringstream msg;
+      msg << "RefFrameBase::pack():" << __LINE__ << '\n';
+      print_data( msg );
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 
    // Encode the data into the buffer.
@@ -621,13 +624,12 @@ void RefFrameBase::pack()
  */
 void RefFrameBase::unpack()
 {
-
    if ( !initialized ) {
       if ( DebugHandler::show( DEBUG_LEVEL_4_TRACE, DEBUG_SOURCE_PACKING ) ) {
          ostringstream errmsg;
          errmsg << "RefFrameBase::unpack():" << __LINE__
                 << " Warning: The initialize() function has not been called!\n";
-         send_hs( stderr, errmsg.str().c_str() );
+         message_publish( MSG_WARNING, errmsg.str().c_str() );
       }
    }
 
@@ -635,12 +637,14 @@ void RefFrameBase::unpack()
    stc_encoder.decode();
 
    // Transfer the packing data into the working data.
-   this->unpack_into_working_data();
+   unpack_into_working_data();
 
    // Print out debug information if desired.
    if ( debug ) {
-      cout << "RefFrameBase::unpack():" << __LINE__ << '\n';
-      this->print_data();
+      ostringstream msg;
+      msg << "RefFrameBase::unpack():" << __LINE__ << '\n';
+      print_data( msg );
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 
    return;
@@ -649,41 +653,14 @@ void RefFrameBase::unpack()
 /*!
  * @job_class{scheduled}
  */
-void RefFrameBase::print_data( std::ostream &stream )
+void RefFrameBase::print_data( std::ostream &stream ) const
 {
-   double euler_angles[3];
-
-   // Compute the attitude Euler angles.
-   packing_data.state.att.get_Euler_deg( Roll_Pitch_Yaw, euler_angles );
-
    // Set the print precision.
    stream.precision( 15 );
 
-   stream << "\tObject-Name: '" << object->get_name() << "'\n"
-          << "\tname:   '" << ( packing_data.name != NULL ? packing_data.name : "" ) << "'\n"
-          << "\tparent: '" << ( packing_data.parent_name != NULL ? packing_data.parent_name : "" ) << "'\n"
-          << "\ttime:   " << packing_data.state.time << '\n';
-   stream << "\tposition: "
-          << "\t\t" << packing_data.state.pos[0] << ", "
-          << "\t\t" << packing_data.state.pos[1] << ", "
-          << "\t\t" << packing_data.state.pos[2] << '\n';
-   stream << "\tvelocity: "
-          << "\t\t" << packing_data.state.vel[0] << ", "
-          << "\t\t" << packing_data.state.vel[1] << ", "
-          << "\t\t" << packing_data.state.vel[2] << '\n';
-   stream << "\tattitude (s,v): "
-          << "\t\t" << packing_data.state.att.scalar << "; "
-          << "\t\t" << packing_data.state.att.vector[0] << ", "
-          << "\t\t" << packing_data.state.att.vector[1] << ", "
-          << "\t\t" << packing_data.state.att.vector[2] << '\n';
-   stream << "\tattitude (RPY){deg}: "
-          << "\t\t" << euler_angles[0] << ", "
-          << "\t\t" << euler_angles[1] << ", "
-          << "\t\t" << euler_angles[2] << '\n';
-   stream << "\tangular velocity: "
-          << "\t\t" << packing_data.state.ang_vel[0] << ", "
-          << "\t\t" << packing_data.state.ang_vel[1] << ", "
-          << "\t\t" << packing_data.state.ang_vel[2] << '\n';
+   stream << "\tObject-Name: '" << object->get_name() << "'\n";
+   stream << "\ttime:   " << packing_data.state.time << '\n';
+   packing_data.print_data( stream );
    stream << '\n';
 
    return;

@@ -82,7 +82,7 @@ class ExecutionControl : public TrickHLA::ExecutionControlBase
 
   public:
    /*! @brief Initialization constructor for the IMSim ExecutionControl class. */
-   explicit ExecutionControl( ExecutionConfiguration &imsim_config );
+   explicit ExecutionControl( IMSim::ExecutionConfiguration &imsim_config );
    /*! @brief Destructor for the IMSim ExecutionControl class. */
    virtual ~ExecutionControl();
 
@@ -135,7 +135,7 @@ class ExecutionControl : public TrickHLA::ExecutionControlBase
    /*! @brief The RTI has announced the existence of a synchronization point.
     *  @param label             Sync-point label.
     *  @param user_supplied_tag Use supplied tag.*/
-   virtual void sync_point_announced(
+   virtual void sync_point_announced( // cppcheck-suppress [uselessOverride]
       std::wstring const     &label,
       RTI1516_USERDATA const &user_supplied_tag );
 
@@ -157,7 +157,7 @@ class ExecutionControl : public TrickHLA::ExecutionControlBase
     * @param theUserSuppliedTag Users tag.
     * @param theTime            HLA time for the interaction.
     * @param received_as_TSO    True if interaction was received by RTI as TSO. */
-   virtual void receive_interaction(
+   virtual bool receive_interaction(
       RTI1516_NAMESPACE::InteractionClassHandle const  &theInteraction,
       RTI1516_NAMESPACE::ParameterHandleValueMap const &theParameterValues,
       RTI1516_USERDATA const                           &theUserSuppliedTag,
@@ -167,6 +167,14 @@ class ExecutionControl : public TrickHLA::ExecutionControlBase
    /*! @brief Send a mode transition request to the Master federate.
     *  @param requested_mode Requested mode. */
    virtual void send_mode_transition_interaction( TrickHLA::ModeTransitionEnum requested_mode );
+
+   /*! @brief Get a comma separated list of interaction FOM names used.
+    *  @return Comma separated list of interaction FOM names used. */
+   virtual std::string get_interaction_FOM_names()
+   {
+      // Only have one interaction used by this execution control.
+      return ( freeze_interaction != NULL ) ? freeze_interaction->get_FOM_name() : "";
+   }
 
    /*! @brief Sets the next ExecutionControl run mode.
     *  @param exec_control Next ExecutionControl run mode. */

@@ -86,15 +86,14 @@ LRTreeNodeBase::LRTreeNodeBase(
      is_root_node( false ),
      node_id( 0 )
 {
-
    // Copy the name.
    if ( trick_MM != NULL ) {
       name = trick_MM->mm_strdup( node_name );
    } else {
       if ( DebugHandler::show( DEBUG_LEVEL_2_TRACE, DEBUG_SOURCE_ALL_MODULES ) ) {
-         send_hs( stdout,
-                  "mm_strdup called before MemoryManager instantiation. Setting to name to NULL.\n",
-                  __LINE__ );
+         message_publish( MSG_NORMAL,
+                          "mm_strdup called before MemoryManager instantiation. Setting to name to NULL.\n",
+                          __LINE__ );
       }
    }
 
@@ -119,8 +118,8 @@ LRTreeNodeBase::~LRTreeNodeBase()
    // Free the allocated node name.
    if ( this->name != NULL ) {
       if ( trick_MM->delete_var( static_cast< void * >( this->name ) ) ) {
-         send_hs( stderr, "SpaceFOM::LRTreeNodeBase::~LRTreeNodeBase:%d WARNING failed to delete Trick Memory for 'this->name'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::LRTreeNodeBase::~LRTreeNodeBase:%d WARNING failed to delete Trick Memory for 'this->name'\n",
+                          __LINE__ );
       }
 
       // Set the node name to NULL.
@@ -135,7 +134,6 @@ LRTreeNodeBase::~LRTreeNodeBase()
  */
 void LRTreeNodeBase::set_name( char const *node_name )
 {
-
    // Check to see if a node name has already been set.
    if ( name == NULL ) {
 
@@ -154,8 +152,8 @@ void LRTreeNodeBase::set_name( char const *node_name )
 
          // Free the existing name.
          if ( trick_MM->delete_var( static_cast< void * >( this->name ) ) ) {
-            send_hs( stderr, "SpaceFOM::LRTreeNodeBase::set_name():%d WARNING failed to delete Trick Memory for 'this->name'\n",
-                     __LINE__ );
+            message_publish( MSG_WARNING, "SpaceFOM::LRTreeNodeBase::set_name():%d WARNING failed to delete Trick Memory for 'this->name'\n",
+                             __LINE__ );
          }
 
          // Copy the new node name.
@@ -167,8 +165,8 @@ void LRTreeNodeBase::set_name( char const *node_name )
 
       // Free the existing name.
       if ( trick_MM->delete_var( static_cast< void * >( this->name ) ) ) {
-         send_hs( stderr, "SpaceFOM::LRTreeNodeBase::set_name():%d WARNING failed to delete Trick Memory for 'this->name'\n",
-                  __LINE__ );
+         message_publish( MSG_WARNING, "SpaceFOM::LRTreeNodeBase::set_name():%d WARNING failed to delete Trick Memory for 'this->name'\n",
+                          __LINE__ );
       }
 
       // Set the node name to NULL.
@@ -183,8 +181,7 @@ void LRTreeNodeBase::set_name( char const *node_name )
  */
 bool LRTreeNodeBase::set_root( bool root_status )
 {
-
-   // If setting as root reference frame.
+   // If setting as root node.
    if ( root_status ) {
 
       // Check to make sure predicates are satisfied.
@@ -198,7 +195,7 @@ bool LRTreeNodeBase::set_root( bool root_status )
          return ( false );
       }
 
-   } // If setting is NOT a root reference frame.
+   } // If setting is NOT a root node.
    else {
 
       // Check to make sure predicates are satisfied.
@@ -222,9 +219,8 @@ bool LRTreeNodeBase::set_root( bool root_status )
 /*!
  * @job_class{scheduled}
  */
-void LRTreeNodeBase::print_node( std::ostream &stream )
+void LRTreeNodeBase::print_node( std::ostream &stream ) const
 {
-
    stream << "Node Name: '" << this->name << "'\n"
           << "\tID: " << this->node_id << '\n';
 

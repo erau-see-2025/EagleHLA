@@ -47,6 +47,9 @@ NASA, Johnson Space Center\n
 #include "trick/exec_proto.hh"
 #include "trick/message_proto.h"
 
+// JEOD include files.
+#include "utils/orientation/include/orientation.hh"
+
 // TrickHLA model include files.
 #include "TrickHLA/Attribute.hh"
 #include "TrickHLA/DebugHandler.hh"
@@ -190,16 +193,18 @@ void JEODRefFrameState::pack_from_working_data()
    packing_data.state.time = get_scenario_time();
 
    if ( debug ) {
-      cout << "JEODRefFrameState::pack_from_working_data():" << __LINE__ << '\n'
-           << "\tSim Sec: " << exec_get_sim_time() << '\n'
-           << "\tSeconds: " << ( time_tt->trunc_julian_time * 86400.0 ) << '\n'
-           << "\tDate: " << time_tt->calendar_year
-           << "-" << time_tt->calendar_month
-           << "-" << time_tt->calendar_day
-           << "::" << time_tt->calendar_hour
-           << ":" << time_tt->calendar_minute
-           << ":" << time_tt->calendar_second << '\n'
-           << '\n';
+      ostringstream msg;
+      msg << "JEODRefFrameState::pack_from_working_data():" << __LINE__ << '\n'
+          << "\tSim Sec: " << exec_get_sim_time() << '\n'
+          << "\tSeconds: " << ( time_tt->trunc_julian_time * 86400.0 ) << '\n'
+          << "\tDate: " << time_tt->calendar_year
+          << "-" << time_tt->calendar_month
+          << "-" << time_tt->calendar_day
+          << "::" << time_tt->calendar_hour
+          << ":" << time_tt->calendar_minute
+          << ":" << time_tt->calendar_second << '\n'
+          << '\n';
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 }
 
@@ -248,15 +253,17 @@ void JEODRefFrameState::unpack_into_working_data()
    }
 
    if ( debug ) {
-      cout << "JEODRefFrameState::unpack_into_working_data():" << __LINE__ << '\n'
-           << "\tSim Sec: " << exec_get_sim_time() << '\n'
-           << "\tSeconds: " << ( time_tt->trunc_julian_time * 86400.0 ) << '\n'
-           << "\tDate: " << time_tt->calendar_year
-           << "-" << time_tt->calendar_month
-           << "-" << time_tt->calendar_day
-           << "::" << time_tt->calendar_hour
-           << ":" << time_tt->calendar_minute
-           << ":" << time_tt->calendar_second << '\n'
-           << '\n';
+      ostringstream msg;
+      msg << "JEODRefFrameState::unpack_into_working_data():" << __LINE__ << '\n'
+          << "\tSim Sec: " << exec_get_sim_time() << '\n'
+          << "\tSeconds: " << ( time_tt->trunc_julian_time * 86400.0 ) << '\n'
+          << "\tDate: " << time_tt->calendar_year
+          << "-" << time_tt->calendar_month
+          << "-" << time_tt->calendar_day
+          << "::" << time_tt->calendar_hour
+          << ":" << time_tt->calendar_minute
+          << ":" << time_tt->calendar_second << '\n'
+          << '\n';
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 }

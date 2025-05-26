@@ -27,7 +27,20 @@ NASA, Johnson Space Center\n
 #ifndef TRICKHLA_VERSION_HH
 #define TRICKHLA_VERSION_HH
 
-#define TRICKHLA_VERSION "v3.1.10"
-#define TRICKHLA_RELEASE_DATE "2025-01-29"
+// System include files.
+#include <string>
+
+namespace TrickHLA
+{
+
+// Version of the form: "Major.Minor.Patch"
+static unsigned int const TRICKHLA_MAJOR_VERSION = 3;
+static unsigned int const TRICKHLA_MINOR_VERSION = 1;
+static unsigned int const TRICKHLA_PATCH_VERSION = 18;
+
+// Release date of the form: "YYYY-MM-DD"
+static std::string const TRICKHLA_RELEASE_DATE = "2025-04-10";
+
+} // namespace TrickHLA
 
 #endif // TRICKHLA_VERSION_HH

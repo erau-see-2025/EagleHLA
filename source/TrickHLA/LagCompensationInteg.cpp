@@ -32,7 +32,7 @@ NASA, Johnson Space Center\n
 #include <sstream>
 
 // Trick include files.
-#include "trick/message_proto.h" // for send_hs
+#include "trick/message_proto.h"
 
 // TrickHLA include files.
 #include "TrickHLA/CompileConfig.hh"
@@ -76,11 +76,11 @@ int LagCompensationInteg::integrate(
    // Use the inherited debug-handler to allow debug comments to be turned
    // on and off from a setting in the input file.
    if ( DebugHandler::show( DEBUG_LEVEL_4_TRACE, DEBUG_SOURCE_LAG_COMPENSATION ) ) {
-      ostringstream errmsg;
-      errmsg << "**** LagCompensationInteg::integrate(): "
-             << "Compensate: t_begin, t_end, dt_go: "
-             << t_begin << ", " << t_end << ", " << dt_go << '\n';
-      send_hs( stderr, errmsg.str().c_str() );
+      ostringstream msg;
+      msg << "LagCompensationInteg::integrate(): " << __LINE__
+          << " Compensate: t_begin, t_end, dt_go: "
+          << t_begin << ", " << t_end << ", " << dt_go << '\n';
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 
    // Propagate the current RefFrame state to the desired time.
@@ -94,22 +94,22 @@ int LagCompensationInteg::integrate(
       // Use the inherited debug-handler to allow debug comments to be turned
       // on and off from a setting in the input file.
       if ( DebugHandler::show( DEBUG_LEVEL_6_TRACE, DEBUG_SOURCE_LAG_COMPENSATION ) ) {
-         ostringstream errmsg;
-         errmsg << "****** LagCompensationInteg::integrate(): "
-                << "Integ dt, tol, t, dt_go: "
-                << this->integ_dt << ", " << this->integ_tol << ", "
-                << integ_t << ", " << dt_go << '\n';
-         send_hs( stderr, errmsg.str().c_str() );
+         ostringstream msg;
+         msg << "LagCompensationInteg::integrate(): " << __LINE__
+             << "Integ dt, tol, t, dt_go: "
+             << this->integ_dt << ", " << this->integ_tol << ", "
+             << integ_t << ", " << dt_go << '\n';
+         message_publish( MSG_NORMAL, msg.str().c_str() );
       }
 
       // Integration inner loop.
       // Step through the integrator's integration steps.
       do {
          // Compute the derivatives of the lag compensation state vector.
-         this->derivative_first();
+         derivative_first();
 
          // Load the integration states and derivatives.
-         this->load();
+         load();
 
          // Perform the integration propagation one integration step.
          if ( dt_go > this->integ_dt ) {
@@ -121,12 +121,12 @@ int LagCompensationInteg::integrate(
          }
 
          // Call the integrator.
-         // Was: ipass |= this->integrator->integrate();
+         // Was: ipass |= integrator->integrate();
          // Only need the |= if using multiple integrators.
-         ipass = this->integrator->integrate();
+         ipass = integrator->integrate();
 
          // Unload the integrated states.
-         this->unload();
+         unload();
 
       } while ( ipass );
 
@@ -138,10 +138,10 @@ int LagCompensationInteg::integrate(
    }
 
    // Update the lag compensated time,
-   this->update_time();
+   update_time();
 
    // Compute the derivatives of the lag compensation state vector.
-   this->derivative_first();
+   derivative_first();
 
    return ( 0 );
 }

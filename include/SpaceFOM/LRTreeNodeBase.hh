@@ -90,7 +90,7 @@ class LRTreeNodeBase
 
    /*! @brief Get the node's path index/ID.
     *  @return LRTree node's path index/ID. */
-   inline virtual unsigned int get_id()
+   inline virtual unsigned int get_id() const
    {
       return ( node_id );
    }
@@ -109,7 +109,7 @@ class LRTreeNodeBase
 
    /*! @brief Print out the LRTree node.
     *  @param stream Output stream. */
-   virtual void print_node( std::ostream &stream = std::cout );
+   virtual void print_node( std::ostream &stream = std::cout ) const;
 
   public:
    bool debug; ///< @trick_units{--} Debug output flag.

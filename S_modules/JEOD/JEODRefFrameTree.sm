@@ -2,8 +2,9 @@
  * General TrickHLA Space Reference Federation Object Model (SpaceFOM)
  * Simulation Definition Object for the standard reference frames.
  *---------------------------------------------------------------------------*
- * This is a Simulation Definition (S_define) module that defines the
- * standard SpaceFOM/JEOD reference frame tree.
+ * PURPOSE:
+ *    (This is a Simulation Definition 'S_define' module that defines the
+ *     standard SpaceFOM/JEOD reference frame tree.)
  ****************************************************************************/
 /*****************************************************************************
  *       Author: Edwin Z. Crues
@@ -20,15 +21,22 @@
  *        Date: 
  * Description: 
  ****************************************************************************/
- 
+
+##include <iostream>
+##include "utils/ref_frames/include/ref_frame_state.hh"
+
+// TrickHLA include files.
+##include "TrickHLA/Manager.hh"
+
+// SpaceFOM include files.
+##include "SpaceFOM/ExecutionControl.hh"
+
+#include "SpaceFOM/RefFrameTreeBase.sm"
 
 //==========================================================================
 // SIM_OBJECT: JEODRefFrameTreeSimObject - An JEOD reference frame tree
 // simulation object definition.
 //==========================================================================
-##include <iostream>
-##include "utils/ref_frames/include/ref_frame_state.hh"
-#include "SpaceFOM/RefFrameTreeBase.sm"
 class JEODRefFrameTreeSimObject : public SpaceFOMRefFrameTreeBaseSimObject {
 
   public:
@@ -69,7 +77,6 @@ class JEODRefFrameTreeSimObject : public SpaceFOMRefFrameTreeBaseSimObject {
       P_CONFIG ("initialization") earth_centered_fixed.set_frames( &earth.inertial, &earth.pfix );
       P_CONFIG ("initialization") moon_centered_fixed.set_frames( &moon.inertial, &moon.pfix );
       P_CONFIG ("initialization") mars_centered_fixed.set_frames( &mars.inertial, &mars.pfix );
-      
    }
 
 
@@ -111,7 +118,7 @@ class JEODRefFrameTreeSimObject : public SpaceFOMRefFrameTreeBaseSimObject {
       return;
    }
 
-
+   
   public:
 
    // References to working SpaceFOM reference frames.
@@ -170,7 +177,7 @@ class JEODRefFrameTreeSimObject : public SpaceFOMRefFrameTreeBaseSimObject {
       earth_frame_ptr->base_config( false,
                                     "earth_centered_inertial",
                                     "frame_packing",
-                                    "EarthMJ2000Eq",
+                                    "EarthCentricInertial",
                                     "EarthMoonBarycentricInertial",
                                     embary_frame_ptr );
 
@@ -215,6 +222,7 @@ class JEODRefFrameTreeSimObject : public SpaceFOMRefFrameTreeBaseSimObject {
                                         mars_frame_ptr );
    }
 
+  private:
     // Need for scheduled job persitence.
    jeod::TimeTT & time_tt;
    jeod::DynManager & dyn_manager;
@@ -233,7 +241,6 @@ class JEODRefFrameTreeSimObject : public SpaceFOMRefFrameTreeBaseSimObject {
    // This object is not copyable
    JEODRefFrameTreeSimObject( const JEODRefFrameTreeSimObject & );
    JEODRefFrameTreeSimObject & operator=( const JEODRefFrameTreeSimObject & );
-
 };
 
 

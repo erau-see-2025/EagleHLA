@@ -44,9 +44,9 @@ MutexProtection::MutexProtection(
    TrickHLA::MutexLock *mutex_lock )
    : mutex( mutex_lock )
 {
-   if ( this->mutex->lock() != 0 ) {
-      send_hs( stderr, "MutexProtection::MutexProtection():%d ERROR Locking the MutexLock!\n",
-               __LINE__ );
+   if ( mutex->lock() != 0 ) {
+      message_publish( MSG_ERROR, "MutexProtection::MutexProtection():%d ERROR Locking the MutexLock!\n",
+                       __LINE__ );
    }
 }
 
@@ -58,7 +58,7 @@ MutexProtection::~MutexProtection()
 {
    // Only unlock once because the code creating instances of MutexProtection
    // could be recursive and we must only unlock once per constructor call.
-   this->mutex->unlock();
+   mutex->unlock();
 
    // Make sure to NULL the pointer so this class can be reclaimed.
    this->mutex = NULL;

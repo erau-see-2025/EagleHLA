@@ -47,9 +47,7 @@ SpaceTimeCoordinateData::SpaceTimeCoordinateData()
    : att(),
      time( 0.0 )
 {
-   V_INIT( pos );
-   V_INIT( vel );
-   V_INIT( ang_vel );
+   initialize();
 }
 
 /*!
@@ -97,7 +95,7 @@ void SpaceTimeCoordinateData::copy( SpaceTimeCoordinateData const &stc_data )
 SpaceTimeCoordinateData &SpaceTimeCoordinateData::operator=(
    SpaceTimeCoordinateData const &rhs )
 {
-   this->copy( rhs );
+   copy( rhs );
    return ( *this );
 }
 
@@ -107,7 +105,7 @@ SpaceTimeCoordinateData &SpaceTimeCoordinateData::operator=(
 bool SpaceTimeCoordinateData::operator==(
    SpaceTimeCoordinateData const &rhs )
 {
-   return ( this->is_equal( rhs ) );
+   return ( is_equal( rhs ) );
 }
 
 /*!
@@ -116,7 +114,7 @@ bool SpaceTimeCoordinateData::operator==(
 bool SpaceTimeCoordinateData::operator!=(
    SpaceTimeCoordinateData const &rhs )
 {
-   return ( !( this->is_equal( rhs ) ) );
+   return ( !( is_equal( rhs ) ) );
 }
 
 /*!
@@ -140,7 +138,7 @@ bool SpaceTimeCoordinateData::is_equal(
    }
 
    // Compare attitude
-   if ( !( this->att.is_equal( rhs.att ) ) ) {
+   if ( !( att.is_equal( rhs.att ) ) ) {
       return ( false );
    }
 
@@ -157,4 +155,30 @@ bool SpaceTimeCoordinateData::is_equal(
    }
 
    return ( true );
+}
+
+/*!
+ * @job_class{scheduled}
+ */
+void SpaceTimeCoordinateData::print_data( std::ostream &stream ) const
+{
+   // Set the print precision.
+   stream.precision( 15 );
+
+   stream << "\ttime: " << time << '\n';
+   stream << "\tposition: "
+          << "\t\t" << pos[0] << ", "
+          << "\t\t" << pos[1] << ", "
+          << "\t\t" << pos[2] << '\n';
+   stream << "\tvelocity: "
+          << "\t\t" << vel[0] << ", "
+          << "\t\t" << vel[1] << ", "
+          << "\t\t" << vel[2] << '\n';
+   att.print_data( stream );
+   stream << "\tangular velocity: "
+          << "\t\t" << ang_vel[0] << ", "
+          << "\t\t" << ang_vel[1] << ", "
+          << "\t\t" << ang_vel[2] << '\n';
+
+   return;
 }

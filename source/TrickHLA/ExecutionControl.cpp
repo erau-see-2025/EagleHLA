@@ -84,14 +84,15 @@ extern ATTRIBUTES attrTrickHLA__MTRInteractionHandler[];
 }
 #endif
 
-using namespace std;
 using namespace RTI1516_NAMESPACE;
+using namespace std;
 using namespace TrickHLA;
 
 /*!
  * @job_class{initialization}
  */
 ExecutionControl::ExecutionControl()
+   : TrickHLA::ExecutionControlBase()
 {
    return;
 }
@@ -100,8 +101,8 @@ ExecutionControl::ExecutionControl()
  * @job_class{initialization}
  */
 ExecutionControl::ExecutionControl(
-   ExecutionConfiguration &exec_config )
-   : ExecutionControlBase( exec_config )
+   TrickHLA::ExecutionConfiguration &exec_config )
+   : TrickHLA::ExecutionControlBase( exec_config )
 {
    return;
 }
@@ -126,7 +127,7 @@ void ExecutionControl::initialize()
       ostringstream msg;
       msg << "TrickHLA::ExecutionControl::initialize():" << __LINE__
           << " Initialization-Scheme:'" << get_type() << "'\n";
-      send_hs( stdout, msg.str().c_str() );
+      message_publish( MSG_NORMAL, msg.str().c_str() );
    }
 
    // Simple initialization does not support a Master.
@@ -159,7 +160,7 @@ void ExecutionControl::join_federation_process()
 void ExecutionControl::pre_multi_phase_init_processes()
 {
    if ( DebugHandler::show( DEBUG_LEVEL_2_TRACE, DEBUG_SOURCE_EXECUTION_CONTROL ) ) {
-      send_hs( stdout, "TrickHLA::ExecutionControl::pre_multi_phase_init_processes():%d\n", __LINE__ );
+      message_publish( MSG_NORMAL, "TrickHLA::ExecutionControl::pre_multi_phase_init_processes():%d\n", __LINE__ );
    }
 
    // Setup all the Trick Ref-Attributes for the user specified objects,
@@ -178,20 +179,20 @@ void ExecutionControl::pre_multi_phase_init_processes()
 
    // We are the master if we successfully created the federation and the
    // user has not preset a master value.
-   if ( !this->is_master_preset() ) {
-      this->set_master( federate->is_federation_created_by_federate() );
+   if ( !is_master_preset() ) {
+      set_master( federate->is_federation_created_by_federate() );
    }
 
    // Don't forget to enable asynchronous delivery of messages.
    federate->enable_async_delivery();
 
    if ( DebugHandler::show( DEBUG_LEVEL_2_TRACE, DEBUG_SOURCE_EXECUTION_CONTROL ) ) {
-      if ( this->is_master() ) {
-         send_hs( stdout, "TrickHLA::ExecutionControl::pre_multi_phase_init_processes():%d\n    I AM THE MASTER\n",
-                  __LINE__ );
+      if ( is_master() ) {
+         message_publish( MSG_NORMAL, "TrickHLA::ExecutionControl::pre_multi_phase_init_processes():%d\n    I AM THE MASTER\n",
+                          __LINE__ );
       } else {
-         send_hs( stdout, "TrickHLA::ExecutionControl::pre_multi_phase_init_processes():%d\n    I AM NOT THE MASTER\n",
-                  __LINE__ );
+         message_publish( MSG_NORMAL, "TrickHLA::ExecutionControl::pre_multi_phase_init_processes():%d\n    I AM NOT THE MASTER\n",
+                          __LINE__ );
       }
    }
 
@@ -294,7 +295,7 @@ void ExecutionControl::setup_interaction_ref_attributes()
  */
 void ExecutionControl::setup_object_RTI_handles()
 {
-   ExecutionConfiguration *ExCO = this->get_execution_configuration();
+   ExecutionConfiguration *ExCO = get_execution_configuration();
    if ( ExCO == NULL ) {
       ostringstream errmsg;
       errmsg << "TrickHLA::ExecutionControl::setup_object_RTI_handles():" << __LINE__
@@ -302,7 +303,7 @@ void ExecutionControl::setup_object_RTI_handles()
       DebugHandler::terminate_with_message( errmsg.str() );
       return;
    }
-   this->manager->setup_object_RTI_handles( 1, ExCO );
+   manager->setup_object_RTI_handles( 1, ExCO );
 }
 
 /*!
@@ -336,7 +337,7 @@ void ExecutionControl::add_multiphase_init_sync_points()
       errmsg << "TrickHLA::ExecutionControl::add_multiphase_init_sync_points():" << __LINE__
              << " This call will be ignored because this ExecutionControl does not"
              << " support multiphase initialization synchronization points.\n";
-      send_hs( stdout, errmsg.str().c_str() );
+      message_publish( MSG_NORMAL, errmsg.str().c_str() );
    }
 }
 
@@ -350,7 +351,7 @@ void ExecutionControl::clear_multiphase_init_sync_points()
       errmsg << "TrickHLA::ExecutionControl::clear_multiphase_init_sync_points():" << __LINE__
              << " This call will be ignored because this ExecutionControl does not"
              << " support multiphase initialization synchronization points.\n";
-      send_hs( stdout, errmsg.str().c_str() );
+      message_publish( MSG_NORMAL, errmsg.str().c_str() );
    }
 }
 
@@ -387,15 +388,15 @@ void ExecutionControl::unsubscribe()
 /*!
  * @job_class{scheduled}
  */
-void ExecutionControl::receive_interaction(
-   RTI1516_NAMESPACE::InteractionClassHandle const  &theInteraction,
-   RTI1516_NAMESPACE::ParameterHandleValueMap const &theParameterValues,
-   RTI1516_USERDATA const                           &theUserSuppliedTag,
-   RTI1516_NAMESPACE::LogicalTime const             &theTime,
-   bool const                                        received_as_TSO )
+bool ExecutionControl::receive_interaction(
+   InteractionClassHandle const  &theInteraction,
+   ParameterHandleValueMap const &theParameterValues,
+   RTI1516_USERDATA const        &theUserSuppliedTag,
+   LogicalTime const             &theTime,
+   bool const                     received_as_TSO )
 {
-   // Return now that we put the interaction-item into the queue.
-   return;
+   // No execution control specific interaction to process.
+   return false;
 }
 
 void ExecutionControl::send_mode_transition_interaction(
@@ -539,6 +540,36 @@ void ExecutionControl::set_time_padding( double t )
              << ") when the time padding is less than "
              << THLA_PADDING_DEFAULT << " seconds!\n";
       DebugHandler::terminate_with_message( errmsg.str() );
+   }
+
+   // For a Master federate using CTE, we need to make sure the padding
+   // time is at least two times the freeze frame time. Otherwise we can
+   // not coordinate a go to run in time.
+   if ( is_master() && does_cte_timeline_exist() ) {
+
+      if ( t <= ( 2.0 * exec_get_freeze_frame() ) ) {
+         ostringstream errmsg;
+         errmsg << "TrickHLA::ExecutionControl::set_time_padding():" << __LINE__
+                << " ERROR: Mode transition padding time (" << t
+                << " seconds) must be more than two times the Trick freeze"
+                << " frame time (" << exec_get_freeze_frame() << " seconds)!"
+                << " In your input.py file, please update the padding time"
+                << " and/or the Trick freeze frame time using directives"
+                << " like the following:\n"
+                << "   federate.set_time_padding( pad )\n"
+                << "   trick.exec_set_freeze_frame( frame_time )\n"
+                << "For example, adjusting the freeze frame time for the"
+                << " given time padding:\n";
+         if ( t > ( 2.0 * exec_get_software_frame() ) ) {
+            // Example using the Trick software frame time to set freeze frame.
+            errmsg << "   federate.set_time_padding( " << t << " )\n"
+                   << "   trick.exec_set_freeze_frame( " << exec_get_software_frame() << " )\n";
+         } else {
+            errmsg << "   federate.set_time_padding( " << t << " )\n"
+                   << "   trick.exec_set_freeze_frame( " << ( t / 4 ) << " )\n";
+         }
+         DebugHandler::terminate_with_message( errmsg.str() );
+      }
    }
 
    this->time_padding = Int64BaseTime::to_seconds( padding_base_time );

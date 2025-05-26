@@ -139,7 +139,7 @@ class RefFrameBase : public TrickHLA::Packing, public SpaceFOM::LRTreeNodeBase
 
    /*! @brief Access function to get the HLA federation instance name for the reference frame.
     *  @return Object instance name for this reference frame. */
-   virtual char const *get_name()
+   virtual char const *get_name() const
    {
       return packing_data.name;
    }
@@ -150,7 +150,7 @@ class RefFrameBase : public TrickHLA::Packing, public SpaceFOM::LRTreeNodeBase
 
    /*! @brief Access function to get the HLA federation instance name for the parent reference frame.
     *  @return Object instance name for the parent reference frame. */
-   virtual char const *get_parent_name()
+   virtual char const *get_parent_name() const
    {
       return packing_data.parent_name;
    }
@@ -161,7 +161,7 @@ class RefFrameBase : public TrickHLA::Packing, public SpaceFOM::LRTreeNodeBase
 
    /*! @brief Access function to get the pointer to the parent reference frame.
     *  @return Pointer to the parent reference frame. */
-   virtual RefFrameBase *get_parent_frame()
+   virtual RefFrameBase const *get_parent_frame() const
    {
       return parent_frame;
    }
@@ -172,7 +172,7 @@ class RefFrameBase : public TrickHLA::Packing, public SpaceFOM::LRTreeNodeBase
 
    /*! @brief Get the current scenario time associated with the PhysicalEntity.
     *  @return Current time associated with the PhysicalEntity. */
-   double const get_time()
+   double get_time() const
    {
       return packing_data.state.time;
    }
@@ -201,6 +201,10 @@ class RefFrameBase : public TrickHLA::Packing, public SpaceFOM::LRTreeNodeBase
     *  pe_packing_data object into the working data object(s). */
    virtual void unpack_into_working_data() = 0;
 
+   /*! @brief Print out the reference frame data values.
+    *  @param stream Output stream. */
+   virtual void print_data( std::ostream &stream = std::cout ) const;
+
   protected:
    RefFrameBase *parent_frame; ///< @trick_units{--} Pointer to this frame's parent frame.
 
@@ -214,10 +218,6 @@ class RefFrameBase : public TrickHLA::Packing, public SpaceFOM::LRTreeNodeBase
 
    // Instantiate the Space/Time Coordinate encoder
    SpaceTimeCoordinateEncoder stc_encoder; ///< @trick_units{--} Encoder.
-
-   /*! @brief Print out the reference frame data values.
-    *  @param stream Output stream. */
-   virtual void print_data( std::ostream &stream = std::cout );
 
   private:
    // This object is not copyable
